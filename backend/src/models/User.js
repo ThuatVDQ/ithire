@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
+  user_id: { type: Number, unique: true, required: true },
   avatar_url: { type: String, maxlength: 255 },
   email: { type: String, maxlength: 255 },
   full_name: { type: String, maxlength: 255 },
@@ -9,7 +10,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, maxlength: 255 },
   phone: { type: String, maxlength: 20 },
   status: { type: String, enum: ["ACTIVE", "INACTIVE"] },
-  role_id: { type: mongoose.Schema.Types.ObjectId, ref: "Role" },
+  role_id: { type: Number, ref: "Role", required: true },   
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

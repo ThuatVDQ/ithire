@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const JobSchema = new mongoose.Schema({
+  job_id: { type: Number, unique: true, required: true },
   apply_number: { type: Number },
   benefit: { type: String },
   currency: { type: String, enum: ["USD", "VND"] },
@@ -21,8 +22,8 @@ const JobSchema = new mongoose.Schema({
   title: { type: String, maxlength: 255 },
   type: { type: String, enum: ["FULL_TIME", "INTERNSHIP", "PART_TIME"] },
   views: { type: Number },
-  category_id: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
-  company_id: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
+  category_id: { type: Number, ref: "Category" },
+  company_id: { type: Number, ref: "Company", required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 
 const JobAddressSchema = new mongoose.Schema({
-  address_id: { type: mongoose.Schema.Types.ObjectId, ref: "Address" },
-  job_id: { type: mongoose.Schema.Types.ObjectId, ref: "Job" },
+  job_address_id: { type: Number, unique: true, required: true },
+  address_id: { type: Number, ref: "Address", required: true },
+  job_id: { type: Number, ref: "Job", required: true },
 });
 
 module.exports = mongoose.model("JobAddress", JobAddressSchema);

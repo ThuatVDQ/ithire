@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 
 const FavoriteJobSchema = new mongoose.Schema({
-  job_id: { type: mongoose.Schema.Types.ObjectId, ref: "Job" },
-  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  favorite_job_id: { type: Number, unique: true, required: true },
+  job_id: { type: Number, ref: "Job", required: true },    
+  user_id: { type: Number, ref: "User", required: true },    
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

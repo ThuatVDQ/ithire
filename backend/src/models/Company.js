@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const CompanySchema = new mongoose.Schema({
+  company_id: { type: Number, unique: true, required: true },
   address: { type: String, maxlength: 255 },
   description: { type: String },
   email: { type: String, maxlength: 255 },
@@ -11,7 +12,7 @@ const CompanySchema = new mongoose.Schema({
   status: { type: String, maxlength: 20 },
   tax_code: { type: String, maxlength: 50 },
   web_url: { type: String, maxlength: 255 },
-  created_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  created_by: { type: Number, ref: "User", required: true },  
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
