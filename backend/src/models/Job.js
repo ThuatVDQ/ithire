@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
+const AutoIncrement = require("mongoose-sequence")(mongoose);
 
 const JobSchema = new mongoose.Schema({
-  job_id: { type: Number, unique: true, required: true },
+  job_id: { type: Number, unique: true },
   apply_number: { type: Number },
   benefit: { type: String },
   currency: { type: String, enum: ["USD", "VND"] },
@@ -27,5 +28,7 @@ const JobSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
+
+JobSchema.plugin(AutoIncrement, { inc_field: 'job_id' });
 
 module.exports = mongoose.model("Job", JobSchema);
