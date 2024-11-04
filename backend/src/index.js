@@ -14,13 +14,13 @@ const authRoutes = require("./routes/authRoutes");
 const roleRoutes = require("./routes/roleRoutes");
 const companyRoutes = require('./routes/companyRoutes');
 const jobRoutes = require("./routes/jobRoutes");
-const favoriteRoutes = require("./routes/favoriteRoutes");
+const favoriteJobRoutes = require("./routes/favoriteJobRoutes");
 
 app.use("/api/jobs", jobRoutes);
 app.use('/api/companies', companyRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/roles", roleRoutes);
-app.use("/api/favorite-jobs", favoriteRoutes);
+app.use("/api/favorite-jobs", favoriteJobRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
