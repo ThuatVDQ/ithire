@@ -132,3 +132,29 @@ exports.getJobDetail = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.getJobsByCompany = async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+
+    // Tìm user dựa trên email
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Tìm công ty dựa trên `created_by` trong Company
+    const company = await Company.findOne({ created_by: user.user_id });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found for this user" });
+    }
+
+    // Lấy tất cả công việc của công ty
+    const jobs = await Job.find({ company_id: company.company_id });
+
+    res.status(200).json({ jobs });
+  } catch (error) {
+    console.error("Error fetching jobs by company:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
