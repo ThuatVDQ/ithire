@@ -1,28 +1,20 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const Role = require("../models/Role");
-
+const jwt = require("jsonwebtoken");
 exports.signup = async (req, res) => {
   try {
-    const { email, full_name, password, retypePassword, phone, role_id } = req.body;
+    const { email, full_name, password, retypePassword, phone, role_id } =
+      req.body;
 
-    // Kiểm tra bắt buộc ít nhất một trong hai trường email hoặc phone
-    if (!email && !phone) {
-      return res.status(400).json({ message: "Either email or phone is required" });
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
     }
 
-    // Kiểm tra nếu email hoặc phone đã tồn tại
     if (email) {
       const existingUserWithEmail = await User.findOne({ email });
       if (existingUserWithEmail) {
         return res.status(400).json({ message: "Email already exists" });
-      }
-    }
-
-    if (phone) {
-      const existingUserWithPhone = await User.findOne({ phone });
-      if (existingUserWithPhone) {
-        return res.status(400).json({ message: "Phone number already exists" });
       }
     }
 
@@ -54,5 +46,30 @@ exports.signup = async (req, res) => {
   } catch (error) {
     console.error("Error signing up user:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.login = async (req, res) => {
+  try {
+    const { email, password, role_id } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user && role_id !== user.role_id)
+      return res.status(404).json({ error: "User not found!" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ error: "Invalid credentials!" });
+
+    // Generate JWT
+    const token = jwt.sign(
+      { email: user.email, role_id: user.role_id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    res.status(200).json({ token });
+  } catch (error) {
+    res.status(500).json({ error: "Login failed!" });
   }
 };
