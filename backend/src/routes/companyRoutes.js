@@ -15,4 +15,6 @@ router.post(
 
 router.get("/detail/:company_id", companyController.getCompanyDetail);
 
+router.get("/", companyController.getAll)
+
 module.exports = router;

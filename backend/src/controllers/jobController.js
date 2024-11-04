@@ -5,6 +5,9 @@ const Address = require("../models/Address");
 const Skill = require("../models/Skill");
 const JobAddress = require("../models/JobAddress");
 const JobSkill = require("../models/JobSkill");
+const Category = require("../models/Category");
+const JobApplication = require("../models/JobApplication");
+const CV = require("../models/CV");
 
 exports.createJob = async (req, res) => {
   try {
@@ -22,22 +25,36 @@ exports.createJob = async (req, res) => {
       requirement,
       benefit,
       deadline,
-      category_id,
+      category_names,
       skills,
-      addresses
+      addresses,
     } = req.body;
 
     const userEmail = req.user.email;
     const user = await User.findOne({ email: userEmail });
 
     const company = await Company.findOne({ created_by: user.user_id });
-    
+
     if (!user || !company) {
-      return res.status(404).json({ message: "User or associated company not found" });
+      return res
+        .status(404)
+        .json({ message: "User or associated company not found" });
     }
 
     if (user.role_id !== 2) {
-      return res.status(403).json({ message: "Access denied. Only recruiters can create jobs." });
+      return res
+        .status(403)
+        .json({ message: "Access denied. Only recruiters can create jobs." });
+    }
+
+    const category_ids = [];
+    for (const name of category_names) {
+      let category = await Category.findOne({ name });
+      if (!category) {
+        category = new Category({ name });
+        await category.save();
+      }
+      category_ids.push(category.category_id);
     }
 
     const newJob = new Job({
@@ -59,7 +76,7 @@ exports.createJob = async (req, res) => {
       views: 0,
       status: "PENDING",
       company_id: company.company_id,
-      category_id,
+      category_ids,
     });
 
     await newJob.save();
@@ -114,11 +131,15 @@ exports.getJobDetail = async (req, res) => {
 
     // Tìm các Skill liên kết với Job
     const jobSkills = await JobSkill.find({ job_id: job.job_id });
-    const skills = await Skill.find({ skill_id: { $in: jobSkills.map(js => js.skill_id) } });
+    const skills = await Skill.find({
+      skill_id: { $in: jobSkills.map((js) => js.skill_id) },
+    });
 
     // Tìm các Address liên kết với Job
     const jobAddresses = await JobAddress.find({ job_id: job.job_id });
-    const addresses = await Address.find({ address_id: { $in: jobAddresses.map(ja => ja.address_id) } });
+    const addresses = await Address.find({
+      address_id: { $in: jobAddresses.map((ja) => ja.address_id) },
+    });
 
     // Trả về thông tin chi tiết của Job cùng với Company, Skills và Addresses
     res.status(200).json({
@@ -146,7 +167,9 @@ exports.getJobsByCompany = async (req, res) => {
     // Tìm công ty dựa trên `created_by` trong Company
     const company = await Company.findOne({ created_by: user.user_id });
     if (!company) {
-      return res.status(404).json({ message: "Company not found for this user" });
+      return res
+        .status(404)
+        .json({ message: "Company not found for this user" });
     }
 
     // Lấy tất cả công việc của công ty
@@ -174,6 +197,102 @@ exports.getJobsByStatus = async (req, res) => {
     res.status(200).json({ jobs });
   } catch (error) {
     console.error("Error fetching jobs by status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getAll = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const jobs = await Job.find().skip(skip).limit(limit);
+    const totalJobs = await Job.countDocuments();
+    const totalPages = Math.ceil(totalJobs / limit);
+
+    res.status(200).json({
+      jobs,
+      pagination: {
+        totalJobs,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching all jobs:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.applyJob = async (req, res) => {
+  try {
+    const { job_id } = req.params;
+    const email = req.user.email;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const user_id = user.user_id;
+    // Kiểm tra xem công việc có tồn tại không
+    const job = await Job.findOne({job_id});
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    // Kiểm tra xem người dùng đã ứng tuyển chưa
+    const existingApplication = await JobApplication.findOne({
+      job_id,
+      user_id,
+    });
+
+    if (existingApplication) {
+      if (!req.file) {
+        return res.status(400).json({ message: "CV file is required" });
+      }
+
+      const cv = await CV.findOne({ cv_id: existingApplication.cv_id })
+      cv.cv_url = req.file.filename;
+      cv.save();
+
+      existingApplication.status="IN_PROGRESS";
+      existingApplication.save();
+
+      res.status(201).json({
+        message: "Job application submitted successfully",
+        existingApplication,
+      });
+    } else {
+      // Kiểm tra file CV có được tải lên hay không
+      if (!req.file) {
+        return res.status(400).json({ message: "CV file is required" });
+      }
+
+      const cv = new CV({
+        cv_url: req.file.filename,
+        user_id: user_id,
+      });
+      await cv.save();
+      // Lấy tên file từ `uploadMiddleware`
+      const cv_id = cv.cv_id;
+
+      // Tạo mới bản ghi ứng tuyển với CV
+      const application = new JobApplication({
+        job_id,
+        user_id,
+        cv_id,
+        status: "IN_PROGRESS",
+      });
+
+      await application.save();
+      res.status(201).json({
+        message: "Job application submitted successfully",
+        application,
+      });
+    }
+  } catch (error) {
+    console.error("Error applying for job:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

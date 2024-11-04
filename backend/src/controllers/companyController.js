@@ -80,3 +80,27 @@ exports.getCompanyDetail = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.getAll = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const companies = await Company.find().skip(skip).limit(limit);
+    const totalCompanies = await Company.countDocuments();
+    const totalPages = Math.ceil(totalCompanies / limit);
+
+    res.status(200).json({
+      companies,
+      pagination: {
+        totalCompanies,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching all jobs:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}

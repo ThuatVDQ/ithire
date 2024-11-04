@@ -23,12 +23,12 @@ const JobSchema = new mongoose.Schema({
   title: { type: String, maxlength: 255 },
   type: { type: String, enum: ["FULL_TIME", "INTERNSHIP", "PART_TIME"] },
   views: { type: Number },
-  category_id: { type: Number, ref: "Category" },
+  category_ids: [{ type: Number, ref: "Category" }],
   company_id: { type: Number, ref: "Company", required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
 
-JobSchema.plugin(AutoIncrement, { inc_field: 'job_id' });
+JobSchema.plugin(AutoIncrement, { inc_field: "job_id" });
 
 module.exports = mongoose.model("Job", JobSchema);
