@@ -9,6 +9,7 @@ exports.verifyToken = (req, res, next) => {
     req.user = verified;
     next();
   } catch (error) {
+    console.log("Error verifying token:", error);
     res.status(400).json({ error: "Invalid token!" });
   }
 };

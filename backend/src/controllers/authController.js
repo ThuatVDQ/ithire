@@ -99,3 +99,33 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+const fs = require("fs");
+const path = require("path");
+
+// Hàm upload avatar
+exports.uploadAvatar = async (req, res) => {
+  try {
+    const user_email = req.user.email;
+    const user = await User.findOne({ email: user_email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Xóa file avatar cũ nếu tồn tại
+    if (user.avatar_url) {
+      const oldPath = path.join(__dirname, "../../", user.avatar_url);
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath); // Xóa file cũ
+      }
+    }
+
+    // Cập nhật avatar mới
+    user.avatar_url = `/uploads/${req.file.filename}`;
+    user.updatedAt = Date.now();
+    await user.save();
+
+    res.status(200).json({ message: "Avatar uploaded successfully", avatar_url: user.avatar_url });
+  } catch (error) {
+    console.error("Error uploading avatar:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
