@@ -50,6 +50,5 @@ const validateCompanyCreation = [
 ];
 
 module.exports = {
-  validateSignup, validateAvatarFileType, validateCVFileType,
-  validateCompanyCreation,
+  validateSignup, validateAvatarFileType, validateCVFileType, validateCompanyCreation,
 };

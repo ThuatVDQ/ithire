@@ -26,10 +26,10 @@ exports.createCompany = async (req, res) => {
       return res.status(400).json({ message: "Company name already exists" });
     }
 
-    if (req.user.role_id !== 1) {
+    if (req.user.role_id !== 2) {
       return res.status(403).json({
         message:
-          "Forbidden: Only recruiter or admin users can create companies",
+          "Forbidden: Only recruiter can create companies",
       });
     }
     const user = await User.findOne({ email: req.user.email });

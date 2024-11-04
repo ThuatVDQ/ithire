@@ -2,10 +2,9 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
 const { validateSignup } = require("../middleware/validationMiddleware");
-const { verifyToken } = require("../middleware/authMiddleware");
+const verifyToken = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
-const { validateAvatarFileType, validateCVFileType } = require("../middleware/validationMiddleware");
-
+const { validateAvatarFileType } = require("../middleware/validationMiddleware");
 
 router.post("/signup", validateSignup, authController.signup);
 
