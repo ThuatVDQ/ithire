@@ -13,4 +13,6 @@ router.post(
   companyController.createCompany
 );
 
+router.get("/detail/:company_id", companyController.getCompanyDetail);
+
 module.exports = router;
