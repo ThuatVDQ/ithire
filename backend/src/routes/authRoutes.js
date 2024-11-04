@@ -5,4 +5,6 @@ const { validateSignup } = require("../middleware/validationMiddleware");
 
 router.post("/signup", validateSignup, authController.signup);
 
+router.post("/login", authController.login);
+
 module.exports = router;
