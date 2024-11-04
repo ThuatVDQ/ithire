@@ -158,3 +158,22 @@ exports.getJobsByCompany = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.getJobsByStatus = async (req, res) => {
+  try {
+    const { status } = req.params;
+
+    // Kiểm tra nếu `status` không được cung cấp
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
+    // Tìm các công việc dựa trên `status`
+    const jobs = await Job.find({ status: status.toUpperCase() });
+
+    res.status(200).json({ jobs });
+  } catch (error) {
+    console.error("Error fetching jobs by status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

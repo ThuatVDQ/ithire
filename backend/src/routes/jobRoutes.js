@@ -9,4 +9,6 @@ router.get("/detail/:job_id", jobController.getJobDetail);
 
 router.get("/company", verifyToken, jobController.getJobsByCompany);
 
+router.get("/:status", jobController.getJobsByStatus);
+
 module.exports = router;
