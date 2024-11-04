@@ -15,6 +15,16 @@ router.get("/:status", jobController.getJobsByStatus);
 
 router.get("/", jobController.getAll);
 
-router.post("/apply/:job_id", verifyToken, upload.single("cv"), validateCVFileType, jobController.applyJob);
+router.post(
+  "/apply/:job_id",
+  verifyToken,
+  upload.single("cv"),
+  validateCVFileType,
+  jobController.applyJob
+);
+
+router.post("/:job_id/approve", verifyToken, jobController.approveJob);
+
+router.post("/:job_id/reject", verifyToken, jobController.rejectJob);
 
 module.exports = router;

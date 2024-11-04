@@ -236,7 +236,7 @@ exports.applyJob = async (req, res) => {
     }
     const user_id = user.user_id;
     // Kiểm tra xem công việc có tồn tại không
-    const job = await Job.findOne({job_id});
+    const job = await Job.findOne({ job_id });
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
     }
@@ -252,11 +252,11 @@ exports.applyJob = async (req, res) => {
         return res.status(400).json({ message: "CV file is required" });
       }
 
-      const cv = await CV.findOne({ cv_id: existingApplication.cv_id })
+      const cv = await CV.findOne({ cv_id: existingApplication.cv_id });
       cv.cv_url = req.file.filename;
       cv.save();
 
-      existingApplication.status="IN_PROGRESS";
+      existingApplication.status = "IN_PROGRESS";
       existingApplication.save();
 
       res.status(201).json({
@@ -293,6 +293,47 @@ exports.applyJob = async (req, res) => {
     }
   } catch (error) {
     console.error("Error applying for job:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.approveJob = async (req, res) => {
+  try {
+    const { job_id } = req.params;
+
+    const job = await Job.findOne({ job_id });
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    if (job.status !== "PENDING") {
+      return res.status(400).json({ message: "Job is not pending" });
+    }
+    job.status = "OPEN";
+    await job.save();
+    res.status(200).json({ message: "Job approved successfully", job });
+  } catch (error) {
+    console.error("Error approve job:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.rejectJob = async (req, res) => {
+  try {
+    const { job_id } = req.params;
+
+    const job = await Job.findOne({ job_id });
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+    if (job.status !== "PENDING") {
+      return res.status(400).json({ message: "Job is not pending" });
+    }
+    job.status = "REJECTED";
+    await job.save();
+    res.status(200).json({ message: "Job rejected successfully", job });
+  } catch (error) {
+    console.error("Error reject job:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
