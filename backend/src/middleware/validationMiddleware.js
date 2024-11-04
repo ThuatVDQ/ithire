@@ -42,6 +42,14 @@ const validateCVFileType = (req, res, next) => {
   next(); // Tiếp tục nếu file hợp lệ
 };
 
+const validateCompanyCreation = [
+  body("name").notEmpty().withMessage("Name is not empty"),
+  body("email").isEmail().withMessage("Email is not valid"),
+  body("phone").optional().isLength(10).withMessage("Phone must be 10 digits"),
+  body("tax_code").notEmpty().withMessage("Tax code cannot be empty"),
+];
+
 module.exports = {
-  validateSignup, validateAvatarFileType, validateCVFileType
+  validateSignup, validateAvatarFileType, validateCVFileType,
+  validateCompanyCreation,
 };

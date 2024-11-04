@@ -59,7 +59,7 @@ exports.login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
-      return res.status(400).json({ error: "Invalid credentials!" });
+      return res.status(400).json({ error: "Invalid email or password" });
 
     // Generate JWT
     const token = jwt.sign(
@@ -68,7 +68,7 @@ exports.login = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res.status(200).json({ token });
+    res.status(200).json({ message: "Login successful", token });
   } catch (error) {
     res.status(500).json({ error: "Login failed!" });
   }
