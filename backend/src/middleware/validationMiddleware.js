@@ -11,6 +11,14 @@ const validateSignup = [
     .withMessage("Retype password is not match"),
 ];
 
+const validateCompanyCreation = [
+  body("name").notEmpty().withMessage("Name is not empty"),
+  body("email").isEmail().withMessage("Email is not valid"),
+  body("phone").optional().isLength(10).withMessage("Phone must be 10 digits"),
+  body("tax_code").notEmpty().withMessage("Tax code cannot be empty"),
+];
+
 module.exports = {
   validateSignup,
+  validateCompanyCreation,
 };

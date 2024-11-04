@@ -12,7 +12,9 @@ app.use(express.json());
 
 const authRoutes = require("./routes/authRoutes");
 const roleRoutes = require("./routes/roleRoutes");
+const companyRoutes = require('./routes/companyRoutes');
 
+app.use('/api/companies', companyRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/roles", roleRoutes);
 
