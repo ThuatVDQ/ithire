@@ -202,3 +202,90 @@ exports.removeFavoriteJob = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.getUserInfo = async (req, res) => {
+  try {
+    // Lấy email từ token (req.user được thiết lập từ middleware verifyToken)
+    const userEmail = req.user.email;
+
+    // Tìm người dùng theo email
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Trả về thông tin người dùng dưới dạng một đối tượng
+    res.status(200).json({
+      user: {
+        user_id: user.user_id,
+        email: user.email,
+        full_name: user.full_name,
+        phone: user.phone,
+        gender: user.gender,
+        introduction: user.introduction,
+        avatar_url: user.avatar_url,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getUserInfo = async (req, res) => {
+  try {
+    // Lấy email từ token (req.user được thiết lập từ middleware verifyToken)
+    const userEmail = req.user.email;
+
+    // Tìm người dùng theo email
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Trả về thông tin người dùng dưới dạng một đối tượng
+    res.status(200).json({
+      user: {
+        user_id: user.user_id,
+        email: user.email,
+        full_name: user.full_name,
+        phone: user.phone,
+        gender: user.gender,
+        introduction: user.introduction,
+        avatar_url: user.avatar_url,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getUserInfo = async (req, res) => {
+  try {
+    // Lấy email từ token (req.user được thiết lập từ middleware verifyToken)
+    const userEmail = req.user.email;
+
+    // Tìm người dùng theo email
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Trả về thông tin người dùng dưới dạng một đối tượng
+    res.status(200).json({
+      user: {
+        user_id: user.user_id,
+        email: user.email,
+        full_name: user.full_name,
+        phone: user.phone,
+        gender: user.gender,
+        introduction: user.introduction,
+        avatar_url: user.avatar_url,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

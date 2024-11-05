@@ -18,4 +18,6 @@ router.post("/favorite/add/:job_id", verifyToken, authController.addFavoriteJob)
 
 router.delete("/favorite/remove/:job_id", verifyToken, authController.removeFavoriteJob);
 
+router.get("/info", verifyToken, authController.getUserInfo);
+
 module.exports = router;
