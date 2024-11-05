@@ -56,7 +56,7 @@ exports.login = async (req, res) => {
     const { email, password, role_id } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user && role_id !== user.role_id)
+    if (!user || role_id !== user.role_id)
       return res.status(404).json({ error: "User not found!" });
 
     const isMatch = await bcrypt.compare(password, user.password);

@@ -104,3 +104,32 @@ exports.getAll = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 }
+
+exports.getCompanyByUser = async (req, res) => {
+  try {
+    // Lấy email từ token
+    const userEmail = req.user.email;
+
+    // Tìm người dùng dựa trên email
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Kiểm tra vai trò của người dùng
+    if (user.role_id !== 2) {
+      return res.status(403).json({ message: "Forbidden: Only recruiters can access this information" });
+    }
+
+    // Tìm công ty do người dùng này tạo ra
+    const company = await Company.findOne({ created_by: user.user_id });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found for this user" });
+    }
+
+    res.status(200).json({ company });
+  } catch (error) {
+    console.error("Error fetching company by user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

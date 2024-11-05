@@ -17,4 +17,6 @@ router.get("/detail/:company_id", companyController.getCompanyDetail);
 
 router.get("/", companyController.getAll)
 
+router.get("/info", verifyToken, companyController.getCompanyByUser);
+
 module.exports = router;
