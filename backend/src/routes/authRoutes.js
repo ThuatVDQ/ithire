@@ -14,4 +14,8 @@ router.put("/update", verifyToken, authController.updateUser);
 
 router.post("/upload-avatar", verifyToken, upload.single("avatar"), validateAvatarFileType, authController.uploadAvatar);
 
+router.post("/favorite/add/:job_id", verifyToken, authController.addFavoriteJob);
+
+router.delete("/favorite/remove/:job_id", verifyToken, authController.removeFavoriteJob);
+
 module.exports = router;

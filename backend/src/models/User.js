@@ -12,6 +12,7 @@ const UserSchema = new mongoose.Schema({
   phone: { type: String, maxlength: 10 },
   status: { type: String, enum: ["ACTIVE", "INACTIVE"] },
   role_id: { type: Number, ref: "Role", required: true },
+  favorite_jobs: [{ type: Number, ref: "Job" }], 
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

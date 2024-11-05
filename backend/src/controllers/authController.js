@@ -2,6 +2,8 @@ const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const Role = require("../models/Role");
 const jwt = require("jsonwebtoken");
+const Job = require("../models/Job");
+
 exports.signup = async (req, res) => {
   try {
     const { email, full_name, password, retypePassword, phone, role_id } =
@@ -126,6 +128,77 @@ exports.uploadAvatar = async (req, res) => {
     res.status(200).json({ message: "Avatar uploaded successfully", avatar_url: user.avatar_url });
   } catch (error) {
     console.error("Error uploading avatar:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.addFavoriteJob = async (req, res) => {
+  try {
+    const { job_id } = req.params;
+    const userEmail = req.user.email;
+
+    // Tìm user dựa trên email
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Kiểm tra xem công việc có tồn tại không
+    const job = await Job.findOne({ job_id });
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    // Kiểm tra xem công việc đã được yêu thích chưa
+    if (user.favorite_jobs.includes(job_id)) {
+      return res.status(400).json({ message: "Job already in favorites" });
+    }
+
+    // Thêm job_id vào danh sách yêu thích của người dùng
+    user.favorite_jobs.push(job_id);
+    await user.save();
+
+    // Tăng `like_number` trong `Job`
+    job.like_number += 1;
+    await job.save();
+
+    res.status(201).json({ message: "Job added to favorites"});
+  } catch (error) {
+    console.error("Error adding favorite job:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.removeFavoriteJob = async (req, res) => {
+  try {
+    const { job_id } = req.params;
+    const userEmail = req.user.email;
+
+    // Tìm user dựa trên email
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Kiểm tra xem công việc có trong danh sách yêu thích không
+    if (!user.favorite_jobs.includes(parseInt(job_id))) {
+      return res.status(404).json({ message: "Job not found in favorites" });
+    }
+
+    // Xóa job_id khỏi danh sách yêu thích
+    user.favorite_jobs = user.favorite_jobs.filter(id => id !== parseInt(job_id));
+    await user.save();
+
+    // Giảm `like_number` trong `Job`
+    const job = await Job.findOne({ job_id });
+    if (job) {
+      job.like_number = Math.max(0, job.like_number - 1); // Đảm bảo không xuống dưới 0
+      await job.save();
+    }
+
+    res.status(200).json({ message: "Job removed from favorites", favorite_jobs: user.favorite_jobs });
+  } catch (error) {
+    console.error("Error removing favorite job:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
