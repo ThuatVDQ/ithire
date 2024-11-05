@@ -188,12 +188,30 @@ exports.getAll = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+
+    // Lấy danh sách công việc với phân trang
     const jobs = await Job.find().skip(skip).limit(limit);
     const totalJobs = await Job.countDocuments();
     const totalPages = Math.ceil(totalJobs / limit);
 
+    // Thêm thông tin `city`, `name` của `Skill`, và `logo` của `Company`
+    const jobsWithDetails = await Promise.all(
+      jobs.map(async (job) => {
+        const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
+        const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
+        const company = await Company.findOne({ company_id: job.company_id }, 'logo');
+
+        return {
+          ...job.toObject(),
+          skills: skills.map(skill => skill.name), // Danh sách tên các kỹ năng
+          addresses: addresses.map(address => address.city), // Danh sách thành phố từ địa chỉ
+          companyLogo: company ? company.logo : null, // Logo của công ty (nếu có)
+        };
+      })
+    );
+
     res.status(200).json({
-      jobs,
+      jobs: jobsWithDetails,
       pagination: {
         totalJobs,
         totalPages,
@@ -206,6 +224,7 @@ exports.getAll = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.applyJob = async (req, res) => {
   try {
@@ -316,6 +335,64 @@ exports.rejectJob = async (req, res) => {
     res.status(200).json({ message: "Job rejected successfully", job });
   } catch (error) {
     console.error("Error reject job:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getFavoriteJobs = async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+
+    // Tìm user dựa trên email
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Lấy danh sách công việc yêu thích từ `favorite_jobs`
+    const favoriteJobIds = user.favorite_jobs;
+
+    // Thêm phân trang
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Tìm các công việc yêu thích có phân trang
+    const favoriteJobs = await Job.find({ job_id: { $in: favoriteJobIds } })
+                                  .skip(skip)
+                                  .limit(limit);
+
+    // Tính tổng số công việc yêu thích để xác định tổng số trang
+    const totalFavoriteJobs = await Job.countDocuments({ job_id: { $in: favoriteJobIds } });
+    const totalPages = Math.ceil(totalFavoriteJobs / limit);
+
+    // Truy vấn để lấy tên các kỹ năng, thành phố, và logo của công ty cho từng công việc yêu thích
+    const jobsWithDetails = await Promise.all(
+      favoriteJobs.map(async (job) => {
+        const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
+        const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
+        const company = await Company.findOne({ company_id: job.company_id }, 'logo');
+
+        return {
+          ...job.toObject(),
+          skills: skills.map(skill => skill.name),
+          addresses: addresses.map(address => address.city),
+          companyLogo: company ? company.logo : null, // Logo của công ty (nếu có)
+        };
+      })
+    );
+
+    res.status(200).json({
+      favoriteJobs: jobsWithDetails,
+      pagination: {
+        totalFavoriteJobs,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching favorite jobs:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

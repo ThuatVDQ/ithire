@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const companyController = require("../controllers/companyController");
+const jobController = require("../controllers/jobController");
 const {
   validateCompanyCreation,
 } = require("../middleware/validationMiddleware");
@@ -20,5 +21,7 @@ router.get("/", companyController.getAll)
 router.get("/info", verifyToken, companyController.getCompanyByUser);
 
 router.put("/update", verifyToken, companyController.updateCompany);
+
+router.get("/my-favorites", verifyToken, jobController.getFavoriteJobs);
 
 module.exports = router;

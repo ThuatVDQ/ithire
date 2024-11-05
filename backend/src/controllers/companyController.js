@@ -134,9 +134,6 @@ exports.getCompanyByUser = async (req, res) => {
   }
 };
 
-const Company = require("../models/Company");
-const User = require("../models/User");
-
 exports.updateCompany = async (req, res) => {
   try {
     const userEmail = req.user.email;
