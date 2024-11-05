@@ -19,4 +19,6 @@ router.get("/", companyController.getAll)
 
 router.get("/info", verifyToken, companyController.getCompanyByUser);
 
+router.put("/update", verifyToken, companyController.updateCompany);
+
 module.exports = router;

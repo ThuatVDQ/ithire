@@ -133,3 +133,45 @@ exports.getCompanyByUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+const Company = require("../models/Company");
+const User = require("../models/User");
+
+exports.updateCompany = async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+
+    // Tìm người dùng dựa trên email
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Kiểm tra vai trò của người dùng
+    if (user.role_id !== 2) {
+      return res.status(403).json({ message: "Forbidden: Only recruiters can update company information" });
+    }
+
+    // Tìm công ty do người dùng này tạo ra
+    const company = await Company.findOne({ created_by: user.user_id });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found for this user" });
+    }
+
+    const { name, address, description, scale, web_url } = req.body;
+
+    if (name) company.name = name;
+    if (address) company.address = address;
+    if (description) company.description = description;
+    if (scale) company.scale = scale;
+    if (web_url) company.web_url = web_url;
+
+    // Lưu các thay đổi vào cơ sở dữ liệu
+    await company.save();
+
+    res.status(200).json({ message: "Company updated successfully", company });
+  } catch (error) {
+    console.error("Error updating company:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
