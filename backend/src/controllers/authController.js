@@ -289,3 +289,39 @@ exports.getUserInfo = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.changePassword = async (req, res) => {
+  try {
+    const userEmail = req.user.email; // Lấy email từ `req.user` đã được thiết lập trong middleware `verifyToken`
+    const { currentPassword, newPassword, retypePassword } = req.body;
+
+    // Tìm người dùng theo email
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Kiểm tra mật khẩu hiện tại
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Kiểm tra xem `newPassword` có trùng với `retypePassword` không
+    if (newPassword !== retypePassword) {
+      return res.status(400).json({ message: "New passwords do not match" });
+    }
+
+    // Mã hóa mật khẩu mới
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedNewPassword;
+    user.updatedAt = Date.now();
+
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

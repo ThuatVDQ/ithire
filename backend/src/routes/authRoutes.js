@@ -20,4 +20,6 @@ router.delete("/favorite/remove/:job_id", verifyToken, authController.removeFavo
 
 router.get("/info", verifyToken, authController.getUserInfo);
 
+router.put("/change-password", verifyToken, authController.changePassword);
+
 module.exports = router;
