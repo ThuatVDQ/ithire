@@ -80,3 +80,38 @@ exports.getJobApplicationsByJobId = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.changeApplicationStatus = async (req, res) => {
+  try {
+    const userRoleId = req.user.role_id; // role_id lấy từ token qua middleware verifyToken
+    const  application_id  = Number(req.params.job_application_id);
+    const { newStatus } = req.body;
+
+    // Kiểm tra xem người dùng có phải là recruiter không
+    if (userRoleId !== 2) {
+      return res.status(403).json({ message: "Access denied. Only recruiters can change the application status." });
+    }
+
+    // Lấy thông tin của application
+    console.log(application_id);
+    const application = await JobApplication.findOne({ job_application_id: application_id });
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    // Kiểm tra điều kiện thay đổi trạng thái
+    if (application.status === "IN_PROGRESS" && newStatus === "SEEN") {
+      application.status = "SEEN";
+    } else if (application.status === "SEEN" && (newStatus === "ACCEPTED" || newStatus === "REJECTED")) {
+      application.status = newStatus;
+    } else {
+      return res.status(400).json({ message: "Invalid status transition" });
+    }
+
+    await application.save();
+    res.status(200).json({ message: "Application status updated successfully" });
+  } catch (error) {
+    console.error("Error changing application status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

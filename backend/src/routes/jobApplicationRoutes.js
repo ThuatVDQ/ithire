@@ -14,4 +14,9 @@ router.get(
   jobApplicationController.getJobApplicationsByJobId
 );
 
+router.put(
+  "/change-status/:job_application_id/", verifyToken,
+  jobApplicationController.changeApplicationStatus
+);
+
 module.exports = router;
