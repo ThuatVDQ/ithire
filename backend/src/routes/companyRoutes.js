@@ -24,10 +24,6 @@ router.get("/info", verifyToken, companyController.getCompanyByUser);
 
 router.put("/update", verifyToken, companyController.updateCompany);
 
-router.get("/my-favorites", verifyToken, jobController.getFavoriteJobs);
-
 router.post("/upload-logo", verifyToken, upload.single("logo"), validateAvatarFileType, companyController.uploadLogo);
-
-router.get("/search", jobController.searchJobs);
 
 module.exports = router;

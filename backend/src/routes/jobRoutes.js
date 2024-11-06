@@ -27,4 +27,10 @@ router.post("/:job_id/approve", verifyToken, jobController.approveJob);
 
 router.post("/:job_id/reject", verifyToken, jobController.rejectJob);
 
+router.get("/recruiter/search", verifyToken, jobController.searchJobsForRecruiter);
+
+router.get("/user/search", jobController.searchJobs);
+
+router.get("/user/my-favorites", verifyToken, jobController.getFavoriteJobs);
+
 module.exports = router;

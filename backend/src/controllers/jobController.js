@@ -287,6 +287,8 @@ exports.applyJob = async (req, res) => {
       });
 
       await application.save();
+      job.apply_number += 1;
+      job.save();
       res.status(201).json({
         message: "Job application submitted successfully",
         application,
@@ -404,9 +406,6 @@ exports.searchJobs = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    console.log("title", title);
-    console.log("location", location);
-    console.log("type", type);
 
     // Xây dựng đối tượng truy vấn để tìm kiếm linh hoạt
     let query = {};
@@ -464,3 +463,79 @@ exports.searchJobs = async (req, res) => {
   }
 };
 
+exports.searchJobsForRecruiter = async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+    
+    // Tìm người dùng dựa trên email để xác thực vai trò recruiter
+    const user = await User.findOne({ email: userEmail });
+    if (!user || user.role_id !== 2) {
+      return res.status(403).json({ message: "Access denied. Only recruiters can access this search." });
+    }
+
+    // Lấy công ty mà recruiter này tạo ra
+    const company = await Company.findOne({ created_by: user.user_id });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found for this recruiter" });
+    }
+
+    const { title, location, type } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Xây dựng đối tượng truy vấn để tìm kiếm các công việc thuộc công ty của recruiter
+    let query = { company_id: company.company_id };
+
+    // Tìm kiếm theo tiêu đề công việc
+    if (title) {
+      query.title = { $regex: title, $options: 'i' };
+    }
+
+    // Tìm kiếm theo loại công việc
+    if (type) {
+      query.type = type;
+    }
+
+    // Tìm kiếm theo vị trí (location)
+    if (location) {
+      const addresses = await Address.find({ city: { $regex: location, $options: 'i' } });
+      const addressIds = addresses.map((address) => address.address_id);
+      query.addresses = { $in: addressIds };
+    }
+
+    // Thực hiện truy vấn và phân trang
+    const jobs = await Job.find(query).skip(skip).limit(limit);
+    const totalJobs = await Job.countDocuments(query);
+    const totalPages = Math.ceil(totalJobs / limit);
+
+    // Thêm thông tin chi tiết kỹ năng, địa chỉ và logo công ty
+    const jobsWithDetails = await Promise.all(
+      jobs.map(async (job) => {
+        const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
+        const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
+        const company = await Company.findOne({ company_id: job.company_id }, 'logo');
+
+        return {
+          ...job.toObject(),
+          skills: skills.map(skill => skill.name),
+          addresses: addresses.map(address => address.city),
+          companyLogo: company ? company.logo : null,
+        };
+      })
+    );
+
+    res.status(200).json({
+      jobs: jobsWithDetails,
+      pagination: {
+        totalJobs,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error searching jobs for recruiter:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
