@@ -6,6 +6,7 @@ const Skill = require("../models/Skill");
 const Category = require("../models/Category");
 const JobApplication = require("../models/JobApplication");
 const CV = require("../models/CV");
+const { createNotification } = require("./notificationController");
 
 exports.createJob = async (req, res) => {
   try {
@@ -96,6 +97,8 @@ exports.createJob = async (req, res) => {
     });
 
     await newJob.save();
+    message = `Job "${title}" has been created and is pending approval`;
+    await createNotification(5, message);
     res.status(201).json({ message: "Job created successfully", job: newJob });
   } catch (error) {
     console.error("Error creating job:", error);
@@ -226,6 +229,7 @@ exports.getAll = async (req, res) => {
 };
 
 
+
 exports.applyJob = async (req, res) => {
   try {
     const { job_id } = req.params;
@@ -236,17 +240,25 @@ exports.applyJob = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     const user_id = user.user_id;
-    // Kiểm tra xem công việc có tồn tại không
+
+    // Check if the job exists
     const job = await Job.findOne({ job_id });
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
     }
 
-    // Kiểm tra xem người dùng đã ứng tuyển chưa
+    // Check if the user has already applied
     const existingApplication = await JobApplication.findOne({
       job_id,
       user_id,
     });
+
+    // Get company information to send notification to the recruiter
+    const company = await Company.findOne({ company_id: job.company_id });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found" });
+    }
+    const recruiter_id = company.created_by;
 
     if (existingApplication) {
       if (!req.file) {
@@ -255,17 +267,20 @@ exports.applyJob = async (req, res) => {
 
       const cv = await CV.findOne({ cv_id: existingApplication.cv_id });
       cv.cv_url = req.file.filename;
-      cv.save();
+      await cv.save();
 
       existingApplication.status = "IN_PROGRESS";
-      existingApplication.save();
+      await existingApplication.save();
+
+      // Notification for re-application
+      const message = `${user.full_name} has re-applied to the job: ${job.title}`;
+      await createNotification(recruiter_id, message);
 
       res.status(201).json({
-        message: "Job application submitted successfully",
+        message: "Job re-application submitted successfully",
         existingApplication,
       });
     } else {
-      // Kiểm tra file CV có được tải lên hay không
       if (!req.file) {
         return res.status(400).json({ message: "CV file is required" });
       }
@@ -275,10 +290,9 @@ exports.applyJob = async (req, res) => {
         user_id: user_id,
       });
       await cv.save();
-      // Lấy tên file từ `uploadMiddleware`
+
       const cv_id = cv.cv_id;
 
-      // Tạo mới bản ghi ứng tuyển với CV
       const application = new JobApplication({
         job_id,
         user_id,
@@ -288,7 +302,12 @@ exports.applyJob = async (req, res) => {
 
       await application.save();
       job.apply_number += 1;
-      job.save();
+      await job.save();
+
+      // Notification for first-time application
+      const message = `${user.full_name} has applied to the job: ${job.title}`;
+      await createNotification(recruiter_id, message);
+
       res.status(201).json({
         message: "Job application submitted successfully",
         application,
@@ -299,6 +318,7 @@ exports.applyJob = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.approveJob = async (req, res) => {
   try {
@@ -332,11 +352,26 @@ exports.rejectJob = async (req, res) => {
     if (job.status !== "PENDING") {
       return res.status(400).json({ message: "Job is not pending" });
     }
+    
+    // Update job status to REJECTED
     job.status = "REJECTED";
     await job.save();
+
+    // Find the recruiter who created the job
+    const company = await Company.findOne({ company_id: job.company_id });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found for this job" });
+    }
+
+    const recruiter_id = company.created_by; // Assuming `created_by` holds the recruiter ID
+
+    // Create a notification for the recruiter
+    const message = `"${job.title}" has been rejected.`;
+    await createNotification(recruiter_id, message);
+
     res.status(200).json({ message: "Job rejected successfully", job });
   } catch (error) {
-    console.error("Error reject job:", error);
+    console.error("Error rejecting job:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
