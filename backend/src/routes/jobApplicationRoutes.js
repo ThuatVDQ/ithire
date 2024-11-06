@@ -10,7 +10,7 @@ router.get(
 );
 
 router.get(
-  "/:job_id",
+  "/:job_id", verifyToken,
   jobApplicationController.getJobApplicationsByJobId
 );
 

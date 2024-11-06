@@ -52,10 +52,16 @@ exports.downloadCV = async (req, res) => {
 
 exports.getJobApplicationsByJobId = async (req, res) => {
   try {
+    const userRoleId = req.user.role_id; 
     const jobId = Number(req.params.job_id); // Ensure job_id is a number
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+
+    // Kiểm tra xem người dùng có phải là recruiter không
+    if (userRoleId !== 2) {
+      return res.status(403).json({ message: "Access denied. Only recruiters can change the application status." });
+    }
 
     // Fetch job applications with pagination
     const applications = await JobApplication.find({ job_id: jobId })
@@ -83,7 +89,7 @@ exports.getJobApplicationsByJobId = async (req, res) => {
 
 exports.changeApplicationStatus = async (req, res) => {
   try {
-    const userRoleId = req.user.role_id; // role_id lấy từ token qua middleware verifyToken
+    const userRoleId = req.user.role_id; 
     const  application_id  = Number(req.params.job_application_id);
     const { newStatus } = req.body;
 
@@ -93,7 +99,6 @@ exports.changeApplicationStatus = async (req, res) => {
     }
 
     // Lấy thông tin của application
-    console.log(application_id);
     const application = await JobApplication.findOne({ job_application_id: application_id });
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
