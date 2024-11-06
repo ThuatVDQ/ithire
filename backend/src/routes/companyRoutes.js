@@ -6,6 +6,8 @@ const {
   validateCompanyCreation,
 } = require("../middleware/validationMiddleware");
 const verifyToken = require("../middleware/authMiddleware");
+const { validateAvatarFileType } = require("../middleware/validationMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 
 router.post(
   "/create",
@@ -23,5 +25,7 @@ router.get("/info", verifyToken, companyController.getCompanyByUser);
 router.put("/update", verifyToken, companyController.updateCompany);
 
 router.get("/my-favorites", verifyToken, jobController.getFavoriteJobs);
+
+router.post("/upload-logo", verifyToken, upload.single("logo"), validateAvatarFileType, companyController.uploadLogo);
 
 module.exports = router;

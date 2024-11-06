@@ -1,6 +1,8 @@
 const Company = require("../models/Company");
 const User = require("../models/User");
 const Job = require("../models/Job");
+const fs = require("fs");
+const path = require("path");
 exports.createCompany = async (req, res) => {
   try {
     const {
@@ -169,6 +171,45 @@ exports.updateCompany = async (req, res) => {
     res.status(200).json({ message: "Company updated successfully", company });
   } catch (error) {
     console.error("Error updating company:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.uploadLogo = async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+
+    // Find user and check role
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role_id !== 2) {
+      return res.status(403).json({ message: "Only recruiters can upload logos" });
+    }
+
+    // Find the company by `created_by`
+    const company = await Company.findOne({ created_by: user.user_id });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found for this user" });
+    }
+
+    // Delete the previous logo if it exists
+    if (company.logo) {
+      const oldLogoPath = path.join(__dirname, "../../", company.logo);
+      if (fs.existsSync(oldLogoPath)) {
+        fs.unlinkSync(oldLogoPath);
+      }
+    }
+
+    // Update company logo with new file path
+    company.logo = `/uploads/${req.file.filename}`;
+    await company.save();
+
+    res.status(200).json({ message: "Logo uploaded successfully", logo: company.logo });
+  } catch (error) {
+    console.error("Error uploading logo:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
