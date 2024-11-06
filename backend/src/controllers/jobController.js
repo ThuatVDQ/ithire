@@ -203,9 +203,9 @@ exports.getAll = async (req, res) => {
 
         return {
           ...job.toObject(),
-          skills: skills.map(skill => skill.name), // Danh sách tên các kỹ năng
-          addresses: addresses.map(address => address.city), // Danh sách thành phố từ địa chỉ
-          companyLogo: company ? company.logo : null, // Logo của công ty (nếu có)
+          skills: skills.map(skill => skill.name), 
+          addresses: addresses.map(address => address.city), 
+          companyLogo: company ? company.logo : null, 
         };
       })
     );
@@ -396,3 +396,71 @@ exports.getFavoriteJobs = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.searchJobs = async (req, res) => {
+  try {
+    const { title, location, type } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    console.log("title", title);
+    console.log("location", location);
+    console.log("type", type);
+
+    // Xây dựng đối tượng truy vấn để tìm kiếm linh hoạt
+    let query = {};
+
+    // Tìm kiếm theo tiêu đề (không phân biệt chữ hoa, chữ thường)
+    if (title) {
+      query.title = { $regex: title, $options: 'i' };
+    }
+
+    // Tìm kiếm theo loại công việc
+    if (type) {
+      query.type = type;
+    }
+
+    // Nếu có location, cần tìm các địa chỉ phù hợp
+    if (location) {
+      const addresses = await Address.find({ city: { $regex: location, $options: 'i' } });
+      const addressIds = addresses.map((address) => address.address_id);
+      query.addresses = { $in: addressIds };
+    }
+
+    // Thực hiện truy vấn với phân trang
+    const jobs = await Job.find(query).skip(skip).limit(limit);
+    const totalJobs = await Job.countDocuments(query);
+    const totalPages = Math.ceil(totalJobs / limit);
+
+    // Thêm thông tin kỹ năng, thành phố, và logo công ty cho từng công việc
+    const jobsWithDetails = await Promise.all(
+      jobs.map(async (job) => {
+        const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
+        const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
+        const company = await Company.findOne({ company_id: job.company_id }, 'logo');
+
+        return {
+          ...job.toObject(),
+          skills: skills.map(skill => skill.name),
+          addresses: addresses.map(address => address.city),
+          companyLogo: company ? company.logo : null,
+        };
+      })
+    );
+
+    res.status(200).json({
+      jobs: jobsWithDetails,
+      pagination: {
+        totalJobs,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error searching jobs:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
