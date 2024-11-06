@@ -9,4 +9,9 @@ router.get(
   jobApplicationController.downloadCV
 );
 
+router.get(
+  "/:job_id",
+  jobApplicationController.getJobApplicationsByJobId
+);
+
 module.exports = router;

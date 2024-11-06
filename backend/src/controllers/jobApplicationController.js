@@ -1,5 +1,6 @@
 const JobApplication = require("../models/JobApplication");
 const CV = require("../models/CV");
+const User = require("../models/User");
 const path = require("path");
 const fs = require("fs");
 exports.downloadCV = async (req, res) => {
@@ -45,6 +46,37 @@ exports.downloadCV = async (req, res) => {
     archive.finalize();
   } catch (error) {
     console.error("Error download cv:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getJobApplicationsByJobId = async (req, res) => {
+  try {
+    const jobId = Number(req.params.job_id); // Ensure job_id is a number
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Fetch job applications with pagination
+    const applications = await JobApplication.find({ job_id: jobId })
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: "user", select: "full_name" }) // Example populate for user details
+
+    const totalApplications = await JobApplication.countDocuments({ job_id: jobId });
+    const totalPages = Math.ceil(totalApplications / limit);
+
+    res.status(200).json({
+      applications,
+      pagination: {
+        totalApplications,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching job applications:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

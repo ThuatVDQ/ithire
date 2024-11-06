@@ -16,7 +16,7 @@ const JobSchema = new mongoose.Schema({
   salary_start: { type: Number },
   salary_end: { type: Number },
   slots: { type: Number },
-  status: { type: String, enum: ["CLOSED", "HOT", "OPEN", "PENDING", "REJECTED"] },
+  status: { type: String, enum: ["CLOSED", "OPEN", "PENDING", "REJECTED"] },
   title: { type: String, maxlength: 255 },
   type: { type: String, enum: ["FULL_TIME", "INTERNSHIP", "PART_TIME"] },
   views: { type: Number, default: 0 },

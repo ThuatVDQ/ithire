@@ -14,6 +14,17 @@ const JobApplicationSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+JobApplicationSchema.virtual("user", {
+  ref: "User",
+  localField: "user_id",
+  foreignField: "user_id",
+  justOne: true,
+});
+
+// Đảm bảo các virtuals sẽ được bao gồm khi chuyển sang JSON hoặc Object
+JobApplicationSchema.set("toObject", { virtuals: true });
+JobApplicationSchema.set("toJSON", { virtuals: true });
+
 JobApplicationSchema.plugin(AutoIncrement, { inc_field: 'job_application_id' });
 
 module.exports = mongoose.model("JobApplication", JobApplicationSchema);
