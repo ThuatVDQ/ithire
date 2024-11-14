@@ -28,6 +28,34 @@ const JobSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+JobSchema.virtual("company", {
+  ref: "Company",
+  localField: "company_id",
+  foreignField: "company_id",
+  justOne: true,
+});
+
+JobSchema.virtual("categories", {
+  ref: "Category",
+  localField: "category_ids",
+  foreignField: "category_id",
+});
+
+JobSchema.virtual("address", {
+  ref: "Address",
+  localField: "addresses",
+  foreignField: "address_id",
+});
+
+JobSchema.virtual("skill", {
+  ref: "Skill",
+  localField: "skills",
+  foreignField: "skill_id",
+});
+
+JobSchema.set("toObject", { virtuals: true });
+JobSchema.set("toJSON", { virtuals: true });
+
 JobSchema.plugin(AutoIncrement, { inc_field: "job_id" });
 
 module.exports = mongoose.model("Job", JobSchema);

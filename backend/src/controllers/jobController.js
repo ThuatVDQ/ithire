@@ -611,7 +611,7 @@ exports.searchJobs = async (req, res) => {
 exports.searchJobsForRecruiter = async (req, res) => {
   try {
     const userEmail = req.user.email;
-    
+
     // Tìm người dùng dựa trên email để xác thực vai trò recruiter
     const user = await User.findOne({ email: userEmail });
     if (!user || user.role_id !== 2) {
@@ -649,29 +649,19 @@ exports.searchJobsForRecruiter = async (req, res) => {
       query.addresses = { $in: addressIds };
     }
 
-    // Thực hiện truy vấn và phân trang
-    const jobs = await Job.find(query).skip(skip).limit(limit);
+    // Lấy danh sách công việc và sử dụng populate cho company và categories
+    const jobs = await Job.find(query)
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: 'categories', select: 'name -_id -category_id' })
+      .populate({ path: 'address', select: 'city -_id -address_id' });
+
     const totalJobs = await Job.countDocuments(query);
     const totalPages = Math.ceil(totalJobs / limit);
 
-    // Thêm thông tin chi tiết kỹ năng, địa chỉ và logo công ty
-    const jobsWithDetails = await Promise.all(
-      jobs.map(async (job) => {
-        const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
-        const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
-        const company = await Company.findOne({ company_id: job.company_id }, 'logo');
-
-        return {
-          ...job.toObject(),
-          skills: skills.map(skill => skill.name),
-          addresses: addresses.map(address => address.city),
-          companyLogo: company ? company.logo : null,
-        };
-      })
-    );
-
+    // Trả về kết quả với công ty và danh mục đã được điền thông tin
     res.status(200).json({
-      jobs: jobsWithDetails,
+      jobs,
       pagination: {
         totalJobs,
         totalPages,
@@ -696,34 +686,20 @@ exports.getAllForAdmin = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Lấy tất cả công việc mà không giới hạn trạng thái
-    const jobs = await Job.find().skip(skip).limit(limit);
+    // Lấy tất cả công việc và sử dụng populate cho công ty và danh mục
+    const jobs = await Job.find()
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: 'company', select: 'name -_id -company_id' })  
+      .populate({ path: 'categories', select: 'name -_id -category_id' })
+      .populate({ path: 'address', select: 'city -_id -address_id' });
+
     const totalJobs = await Job.countDocuments();
     const totalPages = Math.ceil(totalJobs / limit);
 
-    // Lấy tên công ty và danh mục cho mỗi công việc
-    const jobsWithDetails = await Promise.all(
-      jobs.map(async (job) => {
-        // Lấy tên công ty
-        const company = await Company.findOne({ company_id: job.company_id }, 'name');
-
-        // Lấy tên danh mục
-        const categories = await Category.find(
-          { category_id: { $in: job.category_ids } },
-          'name'
-        );
-
-        return {
-          ...job.toObject(),
-          companyName: company ? company.name : null,
-          categories: categories.map((category) => category.name),
-        };
-      })
-    );
-
-    // Trả về danh sách công việc với tên công ty và danh mục
+    // Trả về danh sách công việc với thông tin công ty và danh mục
     res.status(200).json({
-      jobs: jobsWithDetails,
+      jobs,
       pagination: {
         totalJobs,
         totalPages,
@@ -736,3 +712,4 @@ exports.getAllForAdmin = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
