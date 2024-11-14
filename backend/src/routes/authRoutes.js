@@ -8,6 +8,14 @@ const { validateAvatarFileType } = require("../middleware/validationMiddleware")
 
 router.post("/signup", validateSignup, authController.signup);
 
+router.post("/verify-otp", authController.verifyOTP);
+
+router.post("/resend-otp", authController.resendOTP);
+
+router.post("/forgot-password", authController.sendResetPasswordOTP);
+
+router.post("/reset-password", authController.resetPassword);
+
 router.post("/login", authController.login);
 
 router.put("/update", verifyToken, authController.updateUser);

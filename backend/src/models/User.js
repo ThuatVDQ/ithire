@@ -13,6 +13,9 @@ const UserSchema = new mongoose.Schema({
   status: { type: String, enum: ["ACTIVE", "INACTIVE"] },
   role_id: { type: Number, ref: "Role", required: true },
   favorite_jobs: [{ type: Number, ref: "Job" }], 
+  isOTPVerified: { type: Boolean, default: false },
+  otp: { type: String }, 
+  otpExpire: { type: Date }, 
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

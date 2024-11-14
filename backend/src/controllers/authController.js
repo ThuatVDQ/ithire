@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const Role = require("../models/Role");
 const Company = require("../models/Company");
+const { sendOTPForAction, verifyOTP } = require("../configs/emailService");
 const jwt = require("jsonwebtoken");
 const Job = require("../models/Job");
 
@@ -45,20 +46,125 @@ exports.signup = async (req, res) => {
     });
 
     await user.save();
-    res.status(201).json({ message: "User signed up successfully", user });
+    await sendOTPForAction(email, "signup");
+    res.status(201).json({ message: "User signed up successfully. OTP sent to email."});
   } catch (error) {
     console.error("Error signing up user:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+exports.verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Xác thực OTP từ Redis
+    const verificationMessage = await verifyOTP(email, otp);
+    await User.findOneAndUpdate({ email }, { isOTPVerified: true }, { new: true });
+
+    res.status(200).json({ message: verificationMessage });
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.resendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Kiểm tra xem người dùng có tồn tại không
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // Kiểm tra xem OTP đã được xác thực chưa
+    if (user.isOTPVerified) {
+      return res.status(400).json({ message: "OTP already verified. No need to resend." });
+    }
+
+    // Gửi lại OTP ngay cả khi OTP chưa hết hạn
+    await sendOTPForAction(email, "resend");
+
+    res.status(200).json({ message: "OTP resent successfully"});
+  } catch (error) {
+    console.error("Error resending OTP:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.sendResetPasswordOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Kiểm tra xem người dùng có tồn tại không
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // Gửi OTP để reset mật khẩu
+    await sendOTPForAction(email, 'reset password');
+
+    res.status(200).json({ message: "OTP sent to email for password reset. Please check your inbox." });
+  } catch (error) {
+    console.error("Error sending reset password OTP:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Đặt lại mật khẩu mới
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword, confirmPassword } = req.body;
+
+    // Kiểm tra nếu mật khẩu mới và xác nhận mật khẩu giống nhau
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    // Kiểm tra xem OTP đã được xác thực chưa
+    const user = await User.findOne({ email });
+    if (!user || !user.isOTPVerified) {
+      return res.status(400).json({ message: "OTP is not verified or has expired" });
+    }
+
+    // Mã hóa mật khẩu mới
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Cập nhật mật khẩu mới vào cơ sở dữ liệu
+    await User.findOneAndUpdate(
+      { email },
+      { password: hashedPassword, otp: null, otpExpire: null, isOTPVerified: true },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(400).json({ message: error.message });
+  }
+};
+
+
 exports.login = async (req, res) => {
   try {
     const { email, password, role_id } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user || role_id !== user.role_id)
+    if (!user) {
       return res.status(404).json({ error: "User not found!" });
+    }
+
+    if (!user.isOTPVerified) {
+      return res.status(403).json({ error: "OTP not verified. Please verify your OTP before logging in." });
+    }
+
+    // Kiểm tra role_id nếu có trong yêu cầu
+    if (role_id !== user.role_id) {
+      return res.status(403).json({ error: "Invalid role ID" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
