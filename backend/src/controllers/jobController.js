@@ -8,6 +8,7 @@ const JobApplication = require("../models/JobApplication");
 const CV = require("../models/CV");
 const { createNotification } = require("./notificationController");
 
+//Dành cho recruiter
 exports.createJob = async (req, res) => {
   try {
     const {
@@ -139,6 +140,7 @@ exports.getJobDetail = async (req, res) => {
   }
 };
 
+//Dành cho recruiter
 exports.getJobsByCompany = async (req, res) => {
   try {
     const userEmail = req.user.email;
@@ -167,6 +169,7 @@ exports.getJobsByCompany = async (req, res) => {
   }
 };
 
+//Dành cho admin
 exports.getJobsByStatus = async (req, res) => {
   try {
     // Kiểm tra quyền admin
@@ -393,7 +396,7 @@ exports.applyJob = async (req, res) => {
   }
 };
 
-
+// Dành cho admin
 exports.approveJob = async (req, res) => {
   try {
     const { job_id } = req.params;
@@ -415,6 +418,7 @@ exports.approveJob = async (req, res) => {
   }
 };
 
+// Dành cho admin
 exports.rejectJob = async (req, res) => {
   try {
     const { job_id } = req.params;
@@ -515,9 +519,22 @@ exports.searchJobs = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
+    let user = null;
+    let favoriteJobIds = [];
+    let userId = null;
 
-    // Xây dựng đối tượng truy vấn để tìm kiếm linh hoạt
-    let query = {};
+    // Lấy thông tin người dùng nếu đã đăng nhập
+    if (req.user && req.user.email) {
+      const userEmail = req.user.email;
+      user = await User.findOne({ email: userEmail });
+      if (user) {
+        favoriteJobIds = user.favorite_jobs || [];
+        userId = user.user_id;
+      }
+    }
+
+    // Xây dựng đối tượng truy vấn để tìm kiếm linh hoạt và chỉ lấy công việc có trạng thái "OPEN"
+    let query = { status: "OPEN" };
 
     // Tìm kiếm theo tiêu đề (không phân biệt chữ hoa, chữ thường)
     if (title) {
@@ -541,22 +558,41 @@ exports.searchJobs = async (req, res) => {
     const totalJobs = await Job.countDocuments(query);
     const totalPages = Math.ceil(totalJobs / limit);
 
-    // Thêm thông tin kỹ năng, thành phố, và logo công ty cho từng công việc
+    // Thêm thông tin chi tiết cho từng công việc
     const jobsWithDetails = await Promise.all(
       jobs.map(async (job) => {
+        let isFavorite = false;
+        let apply_status = null;
+
+        if (user) {
+          // Nếu là candidate đã đăng nhập, xác định `isFavorite` và `apply_status`
+          isFavorite = favoriteJobIds.includes(job.job_id);
+
+          const application = await JobApplication.findOne({
+            job_id: job.job_id,
+            user_id: userId,
+          });
+          apply_status = application ? application.status : null;
+        }
+
+        // Lấy thêm thông tin kỹ năng, địa chỉ, logo công ty, và tên công ty
         const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
         const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
-        const company = await Company.findOne({ company_id: job.company_id }, 'logo');
+        const company = await Company.findOne({ company_id: job.company_id }, 'name logo');
 
         return {
           ...job.toObject(),
           skills: skills.map(skill => skill.name),
           addresses: addresses.map(address => address.city),
           companyLogo: company ? company.logo : null,
+          companyName: company ? company.name : null,
+          isFavorite,
+          apply_status,
         };
       })
     );
 
+    // Trả về danh sách công việc với thông tin phân trang
     res.status(200).json({
       jobs: jobsWithDetails,
       pagination: {
