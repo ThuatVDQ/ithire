@@ -1,6 +1,7 @@
 const Company = require("../models/Company");
 const User = require("../models/User");
 const Job = require("../models/Job");
+const JobApplication = require("../models/JobApplication");
 const fs = require("fs");
 const path = require("path");
 exports.createCompany = async (req, res) => {
@@ -210,6 +211,73 @@ exports.uploadLogo = async (req, res) => {
     res.status(200).json({ message: "Logo uploaded successfully", logo: company.logo });
   } catch (error) {
     console.error("Error uploading logo:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.dashboard = async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+
+    // Tìm recruiter từ email
+    const user = await User.findOne({ email: userEmail });
+    if (!user || user.role_id !== 2) {  // Kiểm tra role_id để xác nhận recruiter
+      return res.status(403).json({ message: "Access denied. Only recruiters can access this dashboard." });
+    }
+
+    // Lấy công ty mà recruiter này quản lý
+    const company = await Company.findOne({ created_by: user.user_id });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found for this recruiter" });
+    }
+
+    // Thống kê
+    const totalJobs = await Job.countDocuments({ company_id: company.company_id });
+    const jobs = await Job.find({ company_id: company.company_id });
+    const totalApplications = await JobApplication.countDocuments({ job_id: { $in: jobs.map(job => job.job_id) } });
+    const openJobs = await Job.countDocuments({ company_id: company.company_id, status: 'OPEN' });
+    const closedJobs = await Job.countDocuments({ company_id: company.company_id, status: 'CLOSED' });
+    const rejectedJobs = await Job.countDocuments({ company_id: company.company_id, status: 'REJECTED' });
+
+    const totalViews = await Job.aggregate([
+      { $match: { company_id: company.company_id } },
+      { $group: { _id: null, totalViews: { $sum: "$views" } } }
+    ]);
+
+    const totalLikes = await Job.aggregate([
+      { $match: { company_id: company.company_id } },
+      { $group: { _id: null, totalLikes: { $sum: "$like_number" } } }
+    ]);
+
+    // Lấy 5 công việc mới nhất
+    const recentJobs = await Job.find({ company_id: company.company_id })
+      .sort({ createdAt: -1 }) // Sắp xếp theo thời gian tạo, từ mới đến cũ
+      .limit(5); // Lấy 5 công việc mới nhất
+
+    // Tính ngày 2 tuần trước
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14); // Trừ đi 14 ngày
+
+    // Đếm số lượng ứng viên ứng tuyển trong 2 tuần gần nhất
+    const applicationsInLastTwoWeeks = await JobApplication.countDocuments({
+      createdAt: { $gte: twoWeeksAgo },
+      job_id: { $in: jobs.map(job => job.job_id) } // Lọc ứng viên ứng tuyển cho các công việc của công ty
+    });
+
+    // Trả về dữ liệu thống kê cho dashboard
+    res.status(200).json({
+      totalJobs,
+      totalApplications,
+      openJobs,
+      closedJobs,
+      rejectedJobs,
+      totalViews: totalViews[0]?.totalViews || 0,
+      totalLikes: totalLikes[0]?.totalLikes || 0,
+      recentJobs,  // Thêm 5 công việc mới nhất
+      applicationsInLastTwoWeeks // Thêm số ứng viên trong 2 tuần gần nhất
+    });
+  } catch (error) {
+    console.error("Error fetching recruiter dashboard:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const companyController = require("../controllers/companyController");
-const jobController = require("../controllers/jobController");
 const {
   validateCompanyCreation,
 } = require("../middleware/validationMiddleware");
@@ -25,5 +24,7 @@ router.get("/info", verifyToken, companyController.getCompanyByUser);
 router.put("/update", verifyToken, companyController.updateCompany);
 
 router.post("/upload-logo", verifyToken, upload.single("logo"), validateAvatarFileType, companyController.uploadLogo);
+
+router.get("/dashboard", verifyToken, companyController.dashboard);
 
 module.exports = router;
