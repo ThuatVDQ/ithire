@@ -1,15 +1,26 @@
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const { getSocket } = require("../configs/socket");
 
 // Hàm tạo thông báo mới
 exports.createNotification = async (user_id, message) => {
   try {
+    // Tạo thông báo mới và lưu vào cơ sở dữ liệu
     const notification = new Notification({
       message,
       user_id,
       send_at: new Date(),
     });
+
     await notification.save();
+
+    // Lấy socket.io instance từ file socket.js
+    const socket = getSocket();  // Lấy socket instance từ cấu hình socket.js
+
+    if (socket) {
+      // Phát thông báo mới tới tất cả các client đang kết nối
+      socket.emit("new_notification", { user_id, message });
+    }
   } catch (error) {
     console.error("Lỗi khi tạo thông báo:", error);
   }
