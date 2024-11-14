@@ -22,5 +22,7 @@ router.get("/info", verifyToken, authController.getUserInfo);
 
 router.put("/change-password", verifyToken, authController.changePassword);
 
+router.get("/admin/dashboard", verifyToken, authController.dashboard);
+
 
 module.exports = router;

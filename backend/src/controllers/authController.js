@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const Role = require("../models/Role");
+const Company = require("../models/Company");
 const jwt = require("jsonwebtoken");
 const Job = require("../models/Job");
 
@@ -326,3 +327,66 @@ exports.changePassword = async (req, res) => {
   }
 };
 
+exports.dashboard = async (req, res) => {
+  try {
+    const userEmail = req.user.email;
+
+    // Tìm user và xác định nếu user có phải là admin
+    const user = await User.findOne({ email: userEmail });
+    if (!user || user.role_id !== 1) {  // role_id = 1 cho admin
+      return res.status(403).json({ message: "Access denied. Only admins can access this dashboard." });
+    }
+
+    // Thống kê tổng số công việc
+    const totalJobs = await Job.countDocuments();
+
+    // Thống kê tổng số công ty
+    const totalCompanies = await Company.countDocuments();
+
+    // Thống kê tổng số người dùng (không bao gồm admin)
+    const totalUsers = await User.countDocuments({ role_id: { $ne: 1 } }); // Exclude admin
+
+    // Thống kê số công việc đang mở
+    const openJobs = await Job.countDocuments({ status: "OPEN" });
+
+    // Lấy 5 công ty mới nhất
+    const recentCompanies = await Company.find()
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    // Lấy 5 người dùng mới nhất (không bao gồm admin)
+    const recentUsers = await User.find({ role_id: { $ne: 1 } }) // Exclude admin
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    // Tính ngày 2 tuần trước
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+    // Lấy công ty đã được tạo trong 2 tuần gần nhất
+    const companiesInLastTwoWeeks = await Company.countDocuments({
+      createdAt: { $gte: twoWeeksAgo },
+    });
+
+    // Lấy người dùng đã đăng ký trong 2 tuần gần nhất (không bao gồm admin)
+    const usersInLastTwoWeeks = await User.countDocuments({
+      createdAt: { $gte: twoWeeksAgo },
+      role_id: { $ne: 1 }, // Exclude admin
+    });
+
+    // Trả về dữ liệu thống kê cho dashboard
+    res.status(200).json({
+      totalJobs,
+      totalCompanies,
+      totalUsers,
+      openJobs,
+      recentCompanies,
+      recentUsers,
+      companiesInLastTwoWeeks,
+      usersInLastTwoWeeks,
+    });
+  } catch (error) {
+    console.error("Error fetching admin dashboard:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
