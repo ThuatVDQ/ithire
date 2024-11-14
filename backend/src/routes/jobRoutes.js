@@ -13,14 +13,13 @@ router.get("/company", verifyToken, jobController.getJobsByCompany);
 
 router.get("/:status", jobController.getJobsByStatus);
 
-router.get("/", (req, res, next) => {
+router.get("/candidates/getAll", (req, res, next) => {
   const token = req.headers["authorization"];
   
   // Nếu có token, tiến hành xác thực
   if (token) {
     verifyToken(req, res, (err) => {
       if (err) {
-        // Nếu xác thực không thành công, bỏ qua lỗi và tiếp tục
         req.user = null;
       }
       next();

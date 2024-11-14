@@ -195,31 +195,21 @@ exports.getAll = async (req, res) => {
     let user = null;
     let favoriteJobIds = [];
     let userId = null;
-    let query = {};
 
-    // Kiểm tra xem người dùng đã đăng nhập chưa và lấy thông tin user nếu có
+    // Thiết lập điều kiện truy vấn cho candidate và guest
+    const query = { status: "OPEN" };
+
+    // Kiểm tra nếu người dùng đã đăng nhập (candidate) và lấy thông tin user nếu có
     if (req.user && req.user.email) {
       const userEmail = req.user.email;
       user = await User.findOne({ email: userEmail });
       if (user) {
         favoriteJobIds = user.favorite_jobs || [];
         userId = user.user_id;
-
-        // Xác định truy vấn dựa trên vai trò của người dùng
-        if (user.role_id === 1) {
-          // Admin có thể xem tất cả các công việc
-          query = {};
-        } else if (user.role_id === 3) {
-          // Candidate chỉ thấy công việc "OPEN"
-          query = { status: "OPEN" };
-        }
       }
-    } else {
-      // Trường hợp khách (guest), chỉ thấy công việc "OPEN"
-      query = { status: "OPEN" };
     }
 
-    // Lấy danh sách công việc với điều kiện và phân trang
+    // Lấy danh sách công việc với phân trang và điều kiện
     const jobs = await Job.find(query).skip(skip).limit(limit);
     const totalJobs = await Job.countDocuments(query);
     const totalPages = Math.ceil(totalJobs / limit);
@@ -231,7 +221,7 @@ exports.getAll = async (req, res) => {
         let apply_status = null;
 
         if (user) {
-          // Nếu là người dùng đã đăng nhập, xác định `isFavorite` và `apply_status`
+          // Nếu là candidate đã đăng nhập, xác định `isFavorite` và `apply_status`
           isFavorite = favoriteJobIds.includes(job.job_id);
 
           const application = await JobApplication.findOne({
@@ -271,6 +261,7 @@ exports.getAll = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.applyJob = async (req, res) => {
   try {
