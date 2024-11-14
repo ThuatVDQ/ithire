@@ -219,33 +219,35 @@ exports.getAll = async (req, res) => {
       jobs.map(async (job) => {
         let isFavorite = false;
         let apply_status = null;
-
+    
         if (user) {
           // Nếu là candidate đã đăng nhập, xác định `isFavorite` và `apply_status`
           isFavorite = favoriteJobIds.includes(job.job_id);
-
+    
           const application = await JobApplication.findOne({
             job_id: job.job_id,
             user_id: userId,
           });
           apply_status = application ? application.status : null;
         }
-
-        // Lấy thêm thông tin kỹ năng, địa chỉ và logo công ty
+    
+        // Lấy thêm thông tin kỹ năng, địa chỉ và logo, tên công ty
         const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
         const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
-        const company = await Company.findOne({ company_id: job.company_id }, 'logo');
-
+        const company = await Company.findOne({ company_id: job.company_id }, 'name logo');
+    
         return {
           ...job.toObject(),
           skills: skills.map(skill => skill.name),
           addresses: addresses.map(address => address.city),
           companyLogo: company ? company.logo : null,
+          companyName: company ? company.name : null,
           isFavorite,
           apply_status,
         };
       })
     );
+    
 
     res.status(200).json({
       jobs: jobsWithDetails,
@@ -604,6 +606,58 @@ exports.searchJobsForRecruiter = async (req, res) => {
     });
   } catch (error) {
     console.error("Error searching jobs for recruiter:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getAllForAdmin = async (req, res) => {
+  try {
+    // Kiểm tra quyền admin
+    if (!req.user || req.user.role_id !== 1) {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Lấy tất cả công việc mà không giới hạn trạng thái
+    const jobs = await Job.find().skip(skip).limit(limit);
+    const totalJobs = await Job.countDocuments();
+    const totalPages = Math.ceil(totalJobs / limit);
+
+    // Lấy tên công ty và danh mục cho mỗi công việc
+    const jobsWithDetails = await Promise.all(
+      jobs.map(async (job) => {
+        // Lấy tên công ty
+        const company = await Company.findOne({ company_id: job.company_id }, 'name');
+
+        // Lấy tên danh mục
+        const categories = await Category.find(
+          { category_id: { $in: job.category_ids } },
+          'name'
+        );
+
+        return {
+          ...job.toObject(),
+          companyName: company ? company.name : null,
+          categories: categories.map((category) => category.name),
+        };
+      })
+    );
+
+    // Trả về danh sách công việc với tên công ty và danh mục
+    res.status(200).json({
+      jobs: jobsWithDetails,
+      pagination: {
+        totalJobs,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching all jobs for admin:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

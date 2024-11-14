@@ -31,6 +31,8 @@ router.get("/candidates/getAll", (req, res, next) => {
   }
 }, jobController.getAll);
 
+router.get("/admin/getAll", verifyToken, jobController.getAllForAdmin);
+
 
 router.post(
   "/apply/:job_id",
