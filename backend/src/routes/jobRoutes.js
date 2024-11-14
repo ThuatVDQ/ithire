@@ -35,6 +35,8 @@ router.get("/recruiter/search", verifyToken, jobController.searchJobsForRecruite
 
 router.get("/user/search", optionalAuthenticate,jobController.searchJobs);
 
+router.get("/admin/search", verifyToken, jobController.searchJobsForAdmin);
+
 router.get("/user/my-favorites", verifyToken, jobController.getFavoriteJobs);
 
 module.exports = router;

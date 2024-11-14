@@ -713,3 +713,60 @@ exports.getAllForAdmin = async (req, res) => {
   }
 };
 
+exports.searchJobsForAdmin = async (req, res) => {
+  try {
+    // Kiểm tra quyền admin
+    if (!req.user || req.user.role_id !== 1) {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+
+    const { title, location, type } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Xây dựng đối tượng truy vấn
+    let query = {};
+
+    // Tìm kiếm theo tiêu đề công việc
+    if (title) {
+      query.title = { $regex: title, $options: 'i' };
+    }
+
+    // Tìm kiếm theo loại công việc
+    if (type) {
+      query.type = type;
+    }
+
+    // Tìm kiếm theo vị trí (location)
+    if (location) {
+      const addresses = await Address.find({ city: { $regex: location, $options: 'i' } });
+      const addressIds = addresses.map((address) => address.address_id);
+      query.addresses = { $in: addressIds };
+    }
+
+    // Lấy danh sách công việc và sử dụng populate cho công ty, danh mục và địa chỉ
+    const jobs = await Job.find(query)
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: 'company', select: 'name -_id -company_id' })  
+      .populate({ path: 'categories', select: 'name -_id -category_id' })
+      .populate({ path: 'address', select: 'city -_id -address_id' });
+
+    const totalJobs = await Job.countDocuments(query);
+    const totalPages = Math.ceil(totalJobs / limit);
+
+    res.status(200).json({
+      jobs,
+      pagination: {
+        totalJobs,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error searching jobs for admin:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
