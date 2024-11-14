@@ -11,7 +11,7 @@ router.get("/detail/:job_id", jobController.getJobDetail);
 
 router.get("/company", verifyToken, jobController.getJobsByCompany);
 
-router.get("/:status", jobController.getJobsByStatus);
+router.get("/:status", verifyToken,jobController.getJobsByStatus);
 
 router.get("/candidates/getAll", (req, res, next) => {
   const token = req.headers["authorization"];

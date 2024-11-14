@@ -169,22 +169,61 @@ exports.getJobsByCompany = async (req, res) => {
 
 exports.getJobsByStatus = async (req, res) => {
   try {
+    // Kiểm tra quyền admin
+    if (!req.user || req.user.role_id !== 1) {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+
     const { status } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
     // Kiểm tra nếu `status` không được cung cấp
     if (!status) {
       return res.status(400).json({ message: "Status is required" });
     }
 
-    // Tìm các công việc dựa trên `status`
-    const jobs = await Job.find({ status: status.toUpperCase() });
+    // Tìm các công việc dựa trên `status` và áp dụng phân trang
+    const jobs = await Job.find({ status: status.toUpperCase() }).skip(skip).limit(limit);
+    const totalJobs = await Job.countDocuments({ status: status.toUpperCase() });
+    const totalPages = Math.ceil(totalJobs / limit);
 
-    res.status(200).json({ jobs });
+    // Lấy tên công ty và danh mục cho mỗi công việc
+    const jobsWithDetails = await Promise.all(
+      jobs.map(async (job) => {
+        // Lấy tên công ty
+        const company = await Company.findOne({ company_id: job.company_id }, 'name');
+
+        // Lấy tên danh mục thay vì ID
+        const categories = await Category.find(
+          { category_id: { $in: job.category_ids } },
+          'name'
+        );
+
+        return {
+          ...job.toObject(),
+          companyName: company ? company.name : null,
+          categories: categories.map((category) => category.name),
+        };
+      })
+    );
+
+    res.status(200).json({
+      jobs: jobsWithDetails,
+      pagination: {
+        totalJobs,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
   } catch (error) {
     console.error("Error fetching jobs by status:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.getAll = async (req, res) => {
   try {
