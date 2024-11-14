@@ -1,12 +1,27 @@
 const dotenv = require("dotenv");
 dotenv.config();
 const express = require("express");
+const cors = require("cors");
 const connectDB = require("./configs/db");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 connectDB();
+
+const allowedOrigins = ["http://localhost:3000"]; 
+app.use(cors({
+  origin: function (origin, callback) {
+    // Cho phép truy cập từ các miền trong allowedOrigins hoặc không có origin (dành cho công cụ như Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: "GET,POST,PUT,DELETE",
+  allowedHeaders: "Content-Type,Authorization",
+}));
 
 app.use(express.json());
 
