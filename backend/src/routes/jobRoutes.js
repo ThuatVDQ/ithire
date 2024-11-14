@@ -13,7 +13,25 @@ router.get("/company", verifyToken, jobController.getJobsByCompany);
 
 router.get("/:status", jobController.getJobsByStatus);
 
-router.get("/", jobController.getAll);
+router.get("/", (req, res, next) => {
+  const token = req.headers["authorization"];
+  
+  // Nếu có token, tiến hành xác thực
+  if (token) {
+    verifyToken(req, res, (err) => {
+      if (err) {
+        // Nếu xác thực không thành công, bỏ qua lỗi và tiếp tục
+        req.user = null;
+      }
+      next();
+    });
+  } else {
+    // Nếu không có token, tiếp tục không cần xác thực
+    req.user = null;
+    next();
+  }
+}, jobController.getAll);
+
 
 router.post(
   "/apply/:job_id",

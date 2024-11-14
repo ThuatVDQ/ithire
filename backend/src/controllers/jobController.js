@@ -192,23 +192,67 @@ exports.getAll = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Lấy danh sách công việc với phân trang
-    const jobs = await Job.find().skip(skip).limit(limit);
-    const totalJobs = await Job.countDocuments();
+    let user = null;
+    let favoriteJobIds = [];
+    let userId = null;
+    let query = {};
+
+    // Kiểm tra xem người dùng đã đăng nhập chưa và lấy thông tin user nếu có
+    if (req.user && req.user.email) {
+      const userEmail = req.user.email;
+      user = await User.findOne({ email: userEmail });
+      if (user) {
+        favoriteJobIds = user.favorite_jobs || [];
+        userId = user.user_id;
+
+        // Xác định truy vấn dựa trên vai trò của người dùng
+        if (user.role_id === 1) {
+          // Admin có thể xem tất cả các công việc
+          query = {};
+        } else if (user.role_id === 3) {
+          // Candidate chỉ thấy công việc "OPEN"
+          query = { status: "OPEN" };
+        }
+      }
+    } else {
+      // Trường hợp khách (guest), chỉ thấy công việc "OPEN"
+      query = { status: "OPEN" };
+    }
+
+    // Lấy danh sách công việc với điều kiện và phân trang
+    const jobs = await Job.find(query).skip(skip).limit(limit);
+    const totalJobs = await Job.countDocuments(query);
     const totalPages = Math.ceil(totalJobs / limit);
 
-    // Thêm thông tin `city`, `name` của `Skill`, và `logo` của `Company`
+    // Kiểm tra `isFavorite` và `apply_status` cho từng công việc (nếu người dùng đã đăng nhập)
     const jobsWithDetails = await Promise.all(
       jobs.map(async (job) => {
+        let isFavorite = false;
+        let apply_status = null;
+
+        if (user) {
+          // Nếu là người dùng đã đăng nhập, xác định `isFavorite` và `apply_status`
+          isFavorite = favoriteJobIds.includes(job.job_id);
+
+          const application = await JobApplication.findOne({
+            job_id: job.job_id,
+            user_id: userId,
+          });
+          apply_status = application ? application.status : null;
+        }
+
+        // Lấy thêm thông tin kỹ năng, địa chỉ và logo công ty
         const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
         const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
         const company = await Company.findOne({ company_id: job.company_id }, 'logo');
 
         return {
           ...job.toObject(),
-          skills: skills.map(skill => skill.name), 
-          addresses: addresses.map(address => address.city), 
-          companyLogo: company ? company.logo : null, 
+          skills: skills.map(skill => skill.name),
+          addresses: addresses.map(address => address.city),
+          companyLogo: company ? company.logo : null,
+          isFavorite,
+          apply_status,
         };
       })
     );
@@ -227,8 +271,6 @@ exports.getAll = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 exports.applyJob = async (req, res) => {
   try {
