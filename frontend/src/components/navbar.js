@@ -26,7 +26,7 @@ export default function Navbar({ navClass, navLight }) {
     const fetchUserInfo = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/api/auth/info",
+          "http://localhost:8090/api/auth/info",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

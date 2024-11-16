@@ -25,6 +25,8 @@ const modalStyles = {
     maxWidth: "400px",
     width: "100%",
     textAlign: "center",
+    overflow: "hidden",
+    position: "relative",
   },
 };
 
@@ -55,15 +57,21 @@ export default function ModalVerifyOTP({ isOpen, onClose, userEmail }) {
       onRequestClose={onClose}
       style={modalStyles}
       ariaHideApp={false}
+      overlayClassName="fixed inset-0 flex items-center justify-center z-50"
+      className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative"
     >
-      <div className="relative">
+      <div className="modalHeader">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-black focus:outline-none"
-        >
-          ×
-        </button>
+          style={{
+            position: "absolute",
+            top: "10px",
+            right: "10px",
+            cursor: "pointer",
+          }}
+          className="btn-close absolute top-3 right-3 text-gray-500 hover:text-black focus:outline-none"
+        ></button>
         <h5 className="text-lg font-semibold mb-6">Enter OTP</h5>
         <p className="text-sm text-gray-600 mb-4">
           We’ve sent an OTP to your email: <b>{userEmail}</b>
@@ -74,15 +82,12 @@ export default function ModalVerifyOTP({ isOpen, onClose, userEmail }) {
               type="text"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg"
+              className="w-full px-4 py-2 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg"
               placeholder="Enter OTP"
               required
             />
           </div>
-          <button
-            type="submit"
-            className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg font-medium"
-          >
+          <button type="submit" className="btn btn-primary btn-pills">
             Verify OTP
           </button>
         </form>

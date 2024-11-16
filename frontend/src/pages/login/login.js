@@ -30,7 +30,7 @@ export default function Login() {
 
     try {
       // Gửi request đăng nhập
-      const response = await axios.post("http://localhost:8080/login", data);
+      const response = await axios.post("http://localhost:8090/api/auth/login", data);
 
       // Lưu token và thông báo thành công
       localStorage.setItem("token", response.data.token);

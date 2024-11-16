@@ -1,19 +1,19 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios"; // Sử dụng API của bạn
+import axios from "axios";
 import { toast } from "react-toastify";
 import ModalVerifyOTP from "../../components/modalVerifyOTP";
 
 import bg1 from "../../assets/images/hero/bg3.jpg";
-import logo from "../../assets/images/logo-dark.png";
 
 export default function Signup() {
-  const [isModalOpen, setModalOpen] = useState(true);
-  const [userEmail, setUserEmail] = useState(""); // Để truyền email vào ModalVerifyOTP
+  const [isModalOpen, setModalOpen] = useState(false); 
+  const [userEmail, setUserEmail] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const formData = new FormData(e.target);
     const data = {
       full_name: formData.get("full_name"),
@@ -21,19 +21,24 @@ export default function Signup() {
       password: formData.get("password"),
       retypePassword: formData.get("retypePassword"),
       phone: formData.get("phone"),
-      role_id: 3, // Mặc định role_id là 3 (Job Seeker)
+      role_id: 3, 
     };
 
+    // Kiểm tra mật khẩu khớp
+    if (data.password !== data.retypePassword) {
+      toast.error("Passwords do not match!");
+      return;
+    }
+
     try {
-      const response = await axios.post("/signup", data); // API của bạn
-      toast.success(
-        "Register successful. Please verify OTP sent to your email."
-      );
-      setUserEmail(data.email); // Lưu email để sử dụng khi gửi OTP
-      setModalOpen(true); // Hiển thị modal nhập OTP
+      // Gửi yêu cầu đăng ký tới API
+      const response = await axios.post("/signup", data);
+      toast.success("Register successful. Please verify OTP sent to your email.");
+      setUserEmail(data.email); 
+      setModalOpen(true); 
     } catch (error) {
       const errorMessage =
-        error.response?.data?.message || "Registration failed";
+        error.response?.data?.message || "Registration failed. Please try again.";
       toast.error(errorMessage);
     }
   };
@@ -94,13 +99,13 @@ export default function Signup() {
                 </div>
                 <div className="mb-3">
                   <label className="form-label fw-semibold">
-                    Retype password
+                    Retype Password
                   </label>
                   <input
                     name="retypePassword"
                     type="password"
                     className="form-control"
-                    placeholder="Password"
+                    placeholder="Retype Password"
                     required
                   />
                 </div>
@@ -121,12 +126,12 @@ export default function Signup() {
           </div>
         </div>
       </div>
-      {/* Gọi ModalVerifyOTP */}
-      <ModalVerifyOTP
-        isOpen={isModalOpen}
-        onClose={() => setModalOpen(false)}
-        userEmail={userEmail}
-      />
+      {/* Modal nhập OTP */}
+        <ModalVerifyOTP
+          isOpen={isModalOpen}
+          onClose={() => setModalOpen(false)}
+          userEmail={userEmail}
+        />
     </section>
   );
 }
