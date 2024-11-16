@@ -3,15 +3,17 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaEyeSlash, FaEye } from "react-icons/fa";
 import { toast } from "react-toastify";
+import ModalVerifyOTP from "../../components/modalVerifyOTP";
 import "react-toastify/dist/ReactToastify.css";
 
 import bg1 from "../../assets/images/hero/bg3.jpg";
-import logo from "../../assets/images/logo-dark.png";
 import "../../assets/css/eyes.css";
 
 export default function LoginRecruiter() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [isModalOpen, setModalOpen] = useState(false); 
 
   // Hiển thị/Ẩn mật khẩu
   const togglePasswordVisibility = () => {
@@ -30,33 +32,41 @@ export default function LoginRecruiter() {
 
     try {
       // Gửi request đăng nhập
-      const response = await axios.post("http://localhost:8080/login", data);
+      const response = await axios.post("http://localhost:8090/api/auth/login", data);
 
-      // Lưu token và thông báo thành công
       localStorage.setItem("token", response.data.token);
       toast.success("Login successful!");
 
-      // Chuyển hướng đến trang quản lý
-      navigate("/dashboard");
+      navigate("/recruiter/dashboard");
     } catch (error) {
       // Xử lý lỗi từ server
       const errorMessage = error.response
         ? error.response.data.error
         : error.message;
 
-      if (
-        error.response &&
-        error.response.data.error ===
-          "OTP not verified. Please verify your OTP before logging in."
-      ) {
-        // Điều hướng đến trang xác minh OTP
-        toast.info("OTP not verified. Redirecting to verification page.");
-        navigate(`/enterprise/verify?email=${data.email}`);
-      } else {
-        // Hiển thị thông báo lỗi khác
-        toast.error(errorMessage);
-        console.error({ message: errorMessage });
-      }
+      setUserEmail(data.email); 
+      toast.error(errorMessage);
+      console.error({ message: errorMessage });
+    }
+  };
+
+  // Callback khi xác minh thành công
+  const handleVerifySuccess = () => {
+    setModalOpen(false); 
+    navigate("/recruiter/login"); 
+  };
+
+  const handleResendOTP = async () => {
+    try {
+      await axios.post("http://localhost:8090/api/auth/resend-otp", {
+        email: userEmail,
+      });
+      toast.success("OTP has been resent to your email.");
+      setModalOpen(true);
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to resend OTP.";
+      toast.error(errorMessage);
     }
   };
 
@@ -92,6 +102,8 @@ export default function LoginRecruiter() {
                     className="form-control"
                     placeholder="example@gmail.com"
                     required
+                    value={userEmail} 
+                    onChange={(e) => setUserEmail(e.target.value)}
                   />
                 </div>
 
@@ -121,15 +133,28 @@ export default function LoginRecruiter() {
                   Sign in
                 </button>
 
+                {/* Hiển thị nút Verify Account */}
+                {userEmail && (
+                  <div className="mt-4 text-center">
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleResendOTP();
+                      }}
+                      className="text-decoration-underline text-muted small"
+                    >
+                      Verify account
+                    </a>
+                  </div>
+                )}
+
                 <div className="col-12 text-center mt-3">
                   <span>
                     <span className="text-muted me-2 small">
                       Don't have an account?
                     </span>
-                    <Link
-                      to="/recruiter/signup"
-                      className="text-dark fw-semibold small"
-                    >
+                    <Link to="/recruiter/signup" className="text-dark fw-semibold small">
                       Sign Up
                     </Link>
                   </span>
@@ -139,6 +164,14 @@ export default function LoginRecruiter() {
           </div>
         </div>
       </div>
+
+      {/* Modal Verify OTP */}
+      <ModalVerifyOTP
+        isOpen={isModalOpen}
+        onClose={() => setModalOpen(false)} 
+        userEmail={userEmail} 
+        onVerifySuccess={handleVerifySuccess} 
+      />
     </section>
   );
 }

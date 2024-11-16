@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import ModalVerifyOTP from "../../components/modalVerifyOTP";
 
 import bg1 from "../../assets/images/hero/bg3.jpg";
@@ -9,7 +10,17 @@ import bg1 from "../../assets/images/hero/bg3.jpg";
 export default function Signup() {
   const [isModalOpen, setModalOpen] = useState(false); 
   const [userEmail, setUserEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRetypePassword, setShowRetypePassword] = useState(false);
   const navigate = useNavigate();
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleRetypePasswordVisibility = () => {
+    setShowRetypePassword(!showRetypePassword);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,7 +43,7 @@ export default function Signup() {
 
     try {
       // Gửi yêu cầu đăng ký tới API
-      const response = await axios.post("/signup", data);
+      const response = await axios.post("http://localhost:8090/api/auth/signup", data); // Đổi URL tới cổng 8090
       toast.success("Register successful. Please verify OTP sent to your email.");
       setUserEmail(data.email); 
       setModalOpen(true); 
@@ -41,6 +52,11 @@ export default function Signup() {
         error.response?.data?.message || "Registration failed. Please try again.";
       toast.error(errorMessage);
     }
+  };
+
+  const handleVerifySuccess = () => {
+    setModalOpen(false);
+    navigate("/login"); 
   };
 
   return (
@@ -89,25 +105,43 @@ export default function Signup() {
                 </div>
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Password</label>
-                  <input
-                    name="password"
-                    type="password"
-                    className="form-control"
-                    placeholder="Password"
-                    required
-                  />
+                  <div className="input-group">
+                    <input
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      className="form-control"
+                      placeholder="Password"
+                      required
+                    />
+                    <span
+                      className="input-group-text"
+                      style={{ cursor: "pointer" }}
+                      onClick={togglePasswordVisibility}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </span>
+                  </div>
                 </div>
                 <div className="mb-3">
                   <label className="form-label fw-semibold">
                     Retype Password
                   </label>
-                  <input
-                    name="retypePassword"
-                    type="password"
-                    className="form-control"
-                    placeholder="Retype Password"
-                    required
-                  />
+                  <div className="input-group">
+                    <input
+                      name="retypePassword"
+                      type={showRetypePassword ? "text" : "password"}
+                      className="form-control"
+                      placeholder="Retype Password"
+                      required
+                    />
+                    <span
+                      className="input-group-text"
+                      style={{ cursor: "pointer" }}
+                      onClick={toggleRetypePasswordVisibility}
+                    >
+                      {showRetypePassword ? <FaEyeSlash /> : <FaEye />}
+                    </span>
+                  </div>
                 </div>
                 <div className="mb-3">
                   <label className="form-label fw-semibold">Phone</label>
@@ -129,8 +163,9 @@ export default function Signup() {
       {/* Modal nhập OTP */}
         <ModalVerifyOTP
           isOpen={isModalOpen}
-          onClose={() => setModalOpen(false)}
           userEmail={userEmail}
+          onClose={() => setModalOpen(false)}
+          onVerifySuccess={handleVerifySuccess}
         />
     </section>
   );

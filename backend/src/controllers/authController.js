@@ -79,11 +79,6 @@ exports.resendOTP = async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    // Kiểm tra xem OTP đã được xác thực chưa
-    if (user.isOTPVerified) {
-      return res.status(400).json({ message: "OTP already verified. No need to resend." });
-    }
-
     // Gửi lại OTP ngay cả khi OTP chưa hết hạn
     await sendOTPForAction(email, "resend");
 

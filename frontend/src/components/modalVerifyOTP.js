@@ -30,24 +30,55 @@ const modalStyles = {
   },
 };
 
-export default function ModalVerifyOTP({ isOpen, onClose, userEmail }) {
+export default function ModalVerifyOTP({ isOpen, userEmail, onClose, onVerifySuccess }) {
   const [otp, setOtp] = useState("");
+  const [isResending, setIsResending] = useState(false); // Trạng thái gửi lại OTP
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("/verify-otp", {
-        email: userEmail,
-        otp,
-      });
+      const response = await axios.post(
+        "http://localhost:8090/api/auth/verify-otp",
+        {
+          email: userEmail,
+          otp,
+        }
+      );
       toast.success("OTP verified successfully!");
-      setOtp(""); // Reset OTP field
-      onClose(); // Đóng modal
+      setOtp("");
+      onVerifySuccess();
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "OTP verification failed!";
       toast.error(errorMessage);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    setIsResending(true); // Bắt đầu trạng thái gửi lại
+    try {
+      const response = await axios.post(
+        "http://localhost:8090/api/auth/resend-otp",
+        {
+          email: userEmail,
+        }
+      );
+      toast.success("OTP has been resent to your email!");
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to resend OTP. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setIsResending(false); // Kết thúc trạng thái gửi lại
+    }
+  };
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    // Chỉ cho phép 6 chữ số
+    if (/^\d{0,6}$/.test(value)) {
+      setOtp(value);
     }
   };
 
@@ -81,16 +112,33 @@ export default function ModalVerifyOTP({ isOpen, onClose, userEmail }) {
             <input
               type="text"
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
+              onChange={handleChange}
               className="w-full px-4 py-2 mb-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg"
               placeholder="Enter OTP"
               required
+               maxLength={6} 
+              inputMode="numeric"
             />
           </div>
-          <button type="submit" className="btn btn-primary btn-pills">
+          <button type="submit" className="btn btn-primary btn-pills w-full">
             Verify OTP
           </button>
         </form>
+        <div className="mt-2">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isResending) handleResendOTP();
+            }}
+            className={`text-decoration-underline text-muted small ${
+              isResending ? "disabled-link" : ""
+            }`}
+            style={{ cursor: isResending ? "not-allowed" : "pointer" }}
+          >
+            {isResending ? "Resending..." : "Resend OTP"}
+          </a>
+        </div>
       </div>
     </Modal>
   );
