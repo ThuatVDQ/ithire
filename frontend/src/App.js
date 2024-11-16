@@ -8,6 +8,10 @@ import Login from "./pages/login/login";
 import Signup from "./pages/signup/signup";
 import LoginRecruiter from "./pages/login/loginAsEn";
 import SignupRecruiter from "./pages/signup/signupAsEn";
+import RecruiterLayout from "./pages/recruiter/layout";
+import Dashboard from "./pages/recruiter/dashboard";
+import JobManagement from "./pages/recruiter/jobManagement";
+import ProfileManagement from "./pages/recruiter/profileManagement";
 
 function App() {
   return (
@@ -18,6 +22,11 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/recruiter/login" element={<LoginRecruiter />} />
         <Route path="/recruiter/signup" element={<SignupRecruiter />} />
+        <Route path="/recruiter" element={<RecruiterLayout />}>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="jobs" element={<JobManagement />} />
+          <Route path="profile" element={<ProfileManagement />} />
+        </Route>
       </Routes>
     </>
   );
