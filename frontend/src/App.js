@@ -13,7 +13,7 @@ import Dashboard from "./pages/recruiter/dashboard";
 import JobManagement from "./pages/recruiter/jobManagement";
 import ProfileManagement from "./pages/recruiter/profileManagement";
 import CreateJob from "./pages/recruiter/createJob";
-
+import Companies from "./pages/company";
 import Job from "./pages/job";
 function App() {
   return (
@@ -23,6 +23,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/jobs" element={<Job />} />
+        <Route path="/companies" element={<Companies />}></Route>
         <Route path="/recruiter/login" element={<LoginRecruiter />} />
         <Route path="/recruiter/signup" element={<SignupRecruiter />} />
         <Route path="/recruiter" element={<RecruiterLayout />}>
