@@ -21,6 +21,13 @@ JobApplicationSchema.virtual("user", {
   justOne: true,
 });
 
+JobApplicationSchema.virtual("cv", {
+  ref: "CV",
+  localField: "cv_id",
+  foreignField: "cv_id",
+  justOne: true,
+});
+
 // Đảm bảo các virtuals sẽ được bao gồm khi chuyển sang JSON hoặc Object
 JobApplicationSchema.set("toObject", { virtuals: true });
 JobApplicationSchema.set("toJSON", { virtuals: true });
