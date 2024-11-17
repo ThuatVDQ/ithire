@@ -8,9 +8,9 @@ const { validateCVFileType } = require("../middleware/validationMiddleware");
 
 router.post("/", verifyToken, jobController.createJob);
 
-router.get("/:job_id", jobController.getJobDetail);
+router.get("/search", optionalAuthenticate,jobController.searchJobs);
 
-router.get("/:status", verifyToken,jobController.getJobsByStatus);
+router.get("/:job_id", jobController.getJobDetail);
 
 router.get("/", optionalAuthenticate, jobController.getAll);
 
@@ -22,7 +22,6 @@ router.post(
   jobController.applyJob
 );
 
-router.get("/search", optionalAuthenticate,jobController.searchJobs);
 
 router.get("/my-favorites", verifyToken, jobController.getFavoriteJobs);
 

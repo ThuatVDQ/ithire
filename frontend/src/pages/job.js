@@ -49,7 +49,30 @@ export default function Job() {
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= pagination.totalPages) {
-      setCurrentPage(page); // Cập nhật trạng thái currentPage
+      setCurrentPage(page);
+    }
+  };
+
+  // Hàm xử lý tìm kiếm
+  const handleSearch = async ({ keyword, location, type }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await jobApi.searchJobs(
+        {
+          page: 1, 
+          limit: 6,
+          keyword,
+          location,
+          type,
+        },
+        token
+      );
+
+      setJobs(response.jobs);
+      setPagination(response.pagination);
+      setCurrentPage(1); // Đặt lại trang hiện tại về 1
+    } catch (error) {
+      console.error("Error searching jobs:", error.message);
     }
   };
 
@@ -61,7 +84,6 @@ export default function Job() {
           { page: currentPage, limit: 6 },
           token
         );
-        console.log("Response jobs:", response.jobs);
         setJobs(response.jobs);
         setPagination(response.pagination);
       } catch (error) {
@@ -113,7 +135,7 @@ export default function Job() {
             <div className="col-12 mt-4">
               <div className="features-absolute">
                 <div className="d-md-flex justify-content-between align-items-center bg-white shadow rounded p-4">
-                  <FormSelect />
+                  <FormSelect onSearch={handleSearch} /> {/* Truyền hàm onSearch */}
                 </div>
               </div>
             </div>

@@ -596,7 +596,7 @@ exports.getFavoriteJobs = async (req, res) => {
 
 exports.searchJobs = async (req, res) => {
   try {
-    const { title, location, type } = req.query;
+    const { keyword, location, type } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -619,8 +619,8 @@ exports.searchJobs = async (req, res) => {
     let query = { status: "OPEN" };
 
     // Tìm kiếm theo tiêu đề (không phân biệt chữ hoa, chữ thường)
-    if (title) {
-      query.title = { $regex: title, $options: "i" };
+    if (keyword) {
+      query.title = { $regex: keyword, $options: "i" };
     }
 
     // Tìm kiếm theo loại công việc
@@ -639,6 +639,7 @@ exports.searchJobs = async (req, res) => {
 
     // Thực hiện truy vấn với phân trang
     const jobs = await Job.find(query).skip(skip).limit(limit);
+    console.log("Jobs found:", jobs);
     const totalJobs = await Job.countDocuments(query);
     const totalPages = Math.ceil(totalJobs / limit);
 

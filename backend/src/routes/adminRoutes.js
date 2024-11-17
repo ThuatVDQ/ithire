@@ -10,6 +10,7 @@ router.get("/jobs/search", verifyToken, jobController.searchJobsForAdmin);
 
 router.get("/jobs", verifyToken, jobController.getAllForAdmin);
 
+router.get("/jobs/:status", verifyToken,jobController.getJobsByStatus);
 
 router.post("/jobs/approve/:job_id", verifyToken, jobController.approveJob);
 
