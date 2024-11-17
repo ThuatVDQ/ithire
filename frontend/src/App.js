@@ -14,6 +14,7 @@ import JobManagement from "./pages/recruiter/jobManagement";
 import ProfileManagement from "./pages/recruiter/profileManagement";
 import CreateJob from "./pages/recruiter/createJob";
 import JobCandidates from "./pages/recruiter/jobCandidates";
+import AccountManagement from "./pages/recruiter/accountManagement";
 
 import Companies from "./pages/company";
 import CompanyDetail from "./pages/company-detail";
@@ -39,6 +40,7 @@ function App() {
           <Route path="profile" element={<ProfileManagement />} />
           <Route path="create-job" element={<CreateJob />} />
           <Route path="jobs/:jobId/candidates" element={<JobCandidates />} />
+          <Route path="update-info" element={<AccountManagement />} />
         </Route>
       </Routes>
     </>

@@ -181,7 +181,7 @@ exports.login = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const user_email = req.user.email; 
-    const { full_name, gender, introduction } = req.body;
+    const { full_name, gender, introduction, phone } = req.body;
 
     // Tìm người dùng cần cập nhật bằng email từ token
     const user = await User.findOne({ email: user_email });
@@ -193,6 +193,7 @@ exports.updateUser = async (req, res) => {
     if (full_name) user.full_name = full_name;
     if (gender) user.gender = gender;
     if (introduction) user.introduction = introduction;
+    if (phone) user.phone = phone;
     user.updatedAt = Date.now();
 
     await user.save();

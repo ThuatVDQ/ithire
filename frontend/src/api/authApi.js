@@ -44,7 +44,7 @@ const authApi = {
 
   // Cập nhật thông tin người dùng
   updateUser: async (data, token) => {
-    const response = await axios.put(`${API_BASE_URL}/update-user`, data, {
+    const response = await axios.put(`${API_BASE_URL}/update`, data, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -93,7 +93,7 @@ const authApi = {
 
   // Lấy thông tin người dùng
   getUserInfo: async (token) => {
-    const response = await axios.get(`${API_BASE_URL}/user-info`, {
+    const response = await axios.get(`${API_BASE_URL}/info`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

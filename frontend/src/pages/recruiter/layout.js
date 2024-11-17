@@ -81,11 +81,11 @@ export default function RecruiterLayout() {
               Profile Management
             </Link>
             <Link
-              to="/recruiter/notifications"
+              to="/recruiter/update-info"
               className="nav-link text-white d-flex align-items-center mb-3"
             >
               <FaBell className="me-2" />
-              Notifications
+              Account Management
             </Link>
             <Link
               to="/recruiter/login"

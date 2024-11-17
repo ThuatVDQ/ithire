@@ -179,13 +179,14 @@ exports.updateCompany = async (req, res) => {
         .json({ message: "Company not found for this user" });
     }
 
-    const { name, address, description, scale, web_url } = req.body;
+    const { name, address, description, scale, web_url, phone } = req.body;
 
     if (name) company.name = name;
     if (address) company.address = address;
-    if (description) company.description = description;
+    if (description != null) company.description = description;
     if (scale) company.scale = scale;
     if (web_url) company.web_url = web_url;
+    if (phone) company.phone = phone
 
     // Lưu các thay đổi vào cơ sở dữ liệu
     await company.save();
