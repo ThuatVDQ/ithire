@@ -60,7 +60,7 @@ const jobApi = {
   // Lấy tất cả công việc
   getAllJobs: async (params = {}) => {
     try {
-      const response = await axios.get(`${BASE_URL}/candidates/getAll`, {
+      const response = await axios.get(`${BASE_URL}`, {
         params,
       });
       return response.data;

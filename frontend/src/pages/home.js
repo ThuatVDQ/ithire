@@ -129,7 +129,7 @@ export default function Home() {
 
                       <div className="ms-3">
                         <Link
-                          to={`/job-detail-one/${item.id}`}
+                          to={`/job-detail/${item.job_id}`}
                           className="h5 title text-dark"
                         >
                           {item.title}

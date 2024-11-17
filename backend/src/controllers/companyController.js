@@ -32,8 +32,7 @@ exports.createCompany = async (req, res) => {
 
     if (req.user.role_id !== 2) {
       return res.status(403).json({
-        message:
-          "Forbidden: Only recruiter can create companies",
+        message: "Forbidden: Only recruiter can create companies",
       });
     }
     const user = await User.findOne({ email: req.user.email });
@@ -76,7 +75,7 @@ exports.getCompanyDetail = async (req, res) => {
 
     res.status(200).json({
       company,
-      jobs
+      jobs,
     });
   } catch (error) {
     console.error("Error fetching company detail:", error);
@@ -89,12 +88,26 @@ exports.getAll = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+
     const companies = await Company.find().skip(skip).limit(limit);
+
+    const companiesWithJobCount = await Promise.all(
+      companies.map(async (company) => {
+        const totalJobs = await Job.countDocuments({
+          company_id: company.company_id,
+        });
+        return {
+          ...company.toObject(),
+          totalJobs,
+        };
+      })
+    );
+
     const totalCompanies = await Company.countDocuments();
     const totalPages = Math.ceil(totalCompanies / limit);
 
     res.status(200).json({
-      companies,
+      companies: companiesWithJobCount,
       pagination: {
         totalCompanies,
         totalPages,
@@ -103,10 +116,10 @@ exports.getAll = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching all jobs:", error);
+    console.error("Error fetching all companies:", error);
     res.status(500).json({ message: "Server error" });
   }
-}
+};
 
 exports.getCompanyByUser = async (req, res) => {
   try {
@@ -121,13 +134,17 @@ exports.getCompanyByUser = async (req, res) => {
 
     // Kiểm tra vai trò của người dùng
     if (user.role_id !== 2) {
-      return res.status(403).json({ message: "Forbidden: Only recruiters can access this information" });
+      return res.status(403).json({
+        message: "Forbidden: Only recruiters can access this information",
+      });
     }
 
     // Tìm công ty do người dùng này tạo ra
     const company = await Company.findOne({ created_by: user.user_id });
     if (!company) {
-      return res.status(404).json({ message: "Company not found for this user" });
+      return res
+        .status(404)
+        .json({ message: "Company not found for this user" });
     }
 
     res.status(200).json({ company });
@@ -149,13 +166,17 @@ exports.updateCompany = async (req, res) => {
 
     // Kiểm tra vai trò của người dùng
     if (user.role_id !== 2) {
-      return res.status(403).json({ message: "Forbidden: Only recruiters can update company information" });
+      return res.status(403).json({
+        message: "Forbidden: Only recruiters can update company information",
+      });
     }
 
     // Tìm công ty do người dùng này tạo ra
     const company = await Company.findOne({ created_by: user.user_id });
     if (!company) {
-      return res.status(404).json({ message: "Company not found for this user" });
+      return res
+        .status(404)
+        .json({ message: "Company not found for this user" });
     }
 
     const { name, address, description, scale, web_url } = req.body;
@@ -187,13 +208,17 @@ exports.uploadLogo = async (req, res) => {
     }
 
     if (user.role_id !== 2) {
-      return res.status(403).json({ message: "Only recruiters can upload logos" });
+      return res
+        .status(403)
+        .json({ message: "Only recruiters can upload logos" });
     }
 
     // Find the company by `created_by`
     const company = await Company.findOne({ created_by: user.user_id });
     if (!company) {
-      return res.status(404).json({ message: "Company not found for this user" });
+      return res
+        .status(404)
+        .json({ message: "Company not found for this user" });
     }
 
     // Delete the previous logo if it exists
@@ -208,7 +233,9 @@ exports.uploadLogo = async (req, res) => {
     company.logo = `/uploads/${req.file.filename}`;
     await company.save();
 
-    res.status(200).json({ message: "Logo uploaded successfully", logo: company.logo });
+    res
+      .status(200)
+      .json({ message: "Logo uploaded successfully", logo: company.logo });
   } catch (error) {
     console.error("Error uploading logo:", error);
     res.status(500).json({ message: "Server error" });
@@ -221,32 +248,50 @@ exports.dashboard = async (req, res) => {
 
     // Tìm recruiter từ email
     const user = await User.findOne({ email: userEmail });
-    if (!user || user.role_id !== 2) {  // Kiểm tra role_id để xác nhận recruiter
-      return res.status(403).json({ message: "Access denied. Only recruiters can access this dashboard." });
+    if (!user || user.role_id !== 2) {
+      // Kiểm tra role_id để xác nhận recruiter
+      return res.status(403).json({
+        message: "Access denied. Only recruiters can access this dashboard.",
+      });
     }
 
     // Lấy công ty mà recruiter này quản lý
     const company = await Company.findOne({ created_by: user.user_id });
     if (!company) {
-      return res.status(404).json({ message: "Company not found for this recruiter" });
+      return res
+        .status(404)
+        .json({ message: "Company not found for this recruiter" });
     }
 
     // Thống kê
-    const totalJobs = await Job.countDocuments({ company_id: company.company_id });
+    const totalJobs = await Job.countDocuments({
+      company_id: company.company_id,
+    });
     const jobs = await Job.find({ company_id: company.company_id });
-    const totalApplications = await JobApplication.countDocuments({ job_id: { $in: jobs.map(job => job.job_id) } });
-    const openJobs = await Job.countDocuments({ company_id: company.company_id, status: 'OPEN' });
-    const closedJobs = await Job.countDocuments({ company_id: company.company_id, status: 'CLOSED' });
-    const rejectedJobs = await Job.countDocuments({ company_id: company.company_id, status: 'REJECTED' });
+    const totalApplications = await JobApplication.countDocuments({
+      job_id: { $in: jobs.map((job) => job.job_id) },
+    });
+    const openJobs = await Job.countDocuments({
+      company_id: company.company_id,
+      status: "OPEN",
+    });
+    const closedJobs = await Job.countDocuments({
+      company_id: company.company_id,
+      status: "CLOSED",
+    });
+    const rejectedJobs = await Job.countDocuments({
+      company_id: company.company_id,
+      status: "REJECTED",
+    });
 
     const totalViews = await Job.aggregate([
       { $match: { company_id: company.company_id } },
-      { $group: { _id: null, totalViews: { $sum: "$views" } } }
+      { $group: { _id: null, totalViews: { $sum: "$views" } } },
     ]);
 
     const totalLikes = await Job.aggregate([
       { $match: { company_id: company.company_id } },
-      { $group: { _id: null, totalLikes: { $sum: "$like_number" } } }
+      { $group: { _id: null, totalLikes: { $sum: "$like_number" } } },
     ]);
 
     // Lấy 5 công việc mới nhất
@@ -261,7 +306,7 @@ exports.dashboard = async (req, res) => {
     // Đếm số lượng ứng viên ứng tuyển trong 2 tuần gần nhất
     const applicationsInLastTwoWeeks = await JobApplication.countDocuments({
       createdAt: { $gte: twoWeeksAgo },
-      job_id: { $in: jobs.map(job => job.job_id) } // Lọc ứng viên ứng tuyển cho các công việc của công ty
+      job_id: { $in: jobs.map((job) => job.job_id) }, // Lọc ứng viên ứng tuyển cho các công việc của công ty
     });
 
     // Trả về dữ liệu thống kê cho dashboard
@@ -273,8 +318,8 @@ exports.dashboard = async (req, res) => {
       rejectedJobs,
       totalViews: totalViews[0]?.totalViews || 0,
       totalLikes: totalLikes[0]?.totalLikes || 0,
-      recentJobs,  // Thêm 5 công việc mới nhất
-      applicationsInLastTwoWeeks // Thêm số ứng viên trong 2 tuần gần nhất
+      recentJobs, // Thêm 5 công việc mới nhất
+      applicationsInLastTwoWeeks, // Thêm số ứng viên trong 2 tuần gần nhất
     });
   } catch (error) {
     console.error("Error fetching recruiter dashboard:", error);
