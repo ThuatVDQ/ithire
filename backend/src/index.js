@@ -37,6 +37,8 @@ const jobRoutes = require("./routes/jobRoutes");
 const jobApplicationRoutes = require("./routes/jobApplicationRoutes");
 const cvRoutes = require("./routes/cvRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const recruiterRoutes = require("./routes/recruiterRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 app.use("/api/jobs", jobRoutes);
 app.use("/api/companies", companyRoutes);
@@ -45,6 +47,8 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/job-applications", jobApplicationRoutes);
 app.use("/api/cvs", cvRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/recruiter", recruiterRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

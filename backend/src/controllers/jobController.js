@@ -159,10 +159,45 @@ exports.getJobsByCompany = async (req, res) => {
         .json({ message: "Company not found for this user" });
     }
 
-    // Lấy tất cả công việc của công ty
-    const jobs = await Job.find({ company_id: company.company_id });
+    // Lấy tham số phân trang
+    const page = parseInt(req.query.page) || 1; // Trang hiện tại (mặc định là 1)
+    const limit = parseInt(req.query.limit) || 10; // Số job trên mỗi trang (mặc định là 10)
+    const search = req.query.search || ""; // Từ khóa tìm kiếm
 
-    res.status(200).json({ jobs });
+    // Bộ lọc tìm kiếm
+    const query = {
+      company_id: company.company_id,
+      title: { $regex: search, $options: "i" }, // Tìm kiếm theo tiêu đề (không phân biệt hoa/thường)
+    };
+
+    // Đếm tổng số công việc phù hợp
+    const totalJobs = await Job.countDocuments(query);
+
+    // Lấy danh sách công việc với phân trang
+    const jobs = await Job.find(query)
+      .skip((page - 1) * limit) // Bỏ qua (page - 1) * limit công việc
+      .limit(limit) // Giới hạn số công việc trả về
+      .sort({ createdAt: -1 }); // Sắp xếp công việc mới nhất lên đầu
+
+    // Chuẩn bị phản hồi
+    const jobsWithDetails = jobs.map((job) => ({
+      id: job._id,
+      title: job.title,
+      status: job.status,
+      applications: job.applications.length, // Tổng số ứng dụng
+      createdAt: job.createdAt, // Ngày tạo công việc
+    }));
+
+    // Trả về phản hồi JSON
+    res.status(200).json({
+      jobs: jobsWithDetails,
+      pagination: {
+        totalJobs,
+        totalPages: Math.ceil(totalJobs / limit),
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
   } catch (error) {
     console.error("Error fetching jobs by company:", error);
     res.status(500).json({ message: "Server error" });

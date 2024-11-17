@@ -236,7 +236,7 @@ exports.uploadAvatar = async (req, res) => {
 
 exports.addFavoriteJob = async (req, res) => {
   try {
-    const { job_id } = req.params;
+    const { job_id } = req.body;
     const userEmail = req.user.email;
 
     // Tìm user dựa trên email

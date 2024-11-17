@@ -9,22 +9,16 @@ const { validateAvatarFileType } = require("../middleware/validationMiddleware")
 const upload = require("../middleware/uploadMiddleware");
 
 router.post(
-  "/create",
+  "/",
   verifyToken,
   validateCompanyCreation,
   companyController.createCompany
 );
 
-router.get("/detail/:company_id", companyController.getCompanyDetail);
+router.get("/:company_id", companyController.getCompanyDetail);
 
 router.get("/", companyController.getAll)
 
-router.get("/info", verifyToken, companyController.getCompanyByUser);
-
-router.put("/update", verifyToken, companyController.updateCompany);
-
 router.post("/upload-logo", verifyToken, upload.single("logo"), validateAvatarFileType, companyController.uploadLogo);
-
-router.get("/dashboard", verifyToken, companyController.dashboard);
 
 module.exports = router;

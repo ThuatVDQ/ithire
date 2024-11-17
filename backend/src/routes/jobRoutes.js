@@ -6,18 +6,13 @@ const optionalAuthenticate = require("../middleware/optionalAuthMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 const { validateCVFileType } = require("../middleware/validationMiddleware");
 
-router.post("/create", verifyToken, jobController.createJob);
+router.post("/", verifyToken, jobController.createJob);
 
-router.get("/detail/:job_id", jobController.getJobDetail);
-
-router.get("/company", verifyToken, jobController.getJobsByCompany);
+router.get("/:job_id", jobController.getJobDetail);
 
 router.get("/:status", verifyToken,jobController.getJobsByStatus);
 
-router.get("/candidates/getAll", optionalAuthenticate, jobController.getAll);
-
-router.get("/admin/getAll", verifyToken, jobController.getAllForAdmin);
-
+router.get("/", optionalAuthenticate, jobController.getAll);
 
 router.post(
   "/apply/:job_id",
@@ -27,16 +22,8 @@ router.post(
   jobController.applyJob
 );
 
-router.post("/:job_id/approve", verifyToken, jobController.approveJob);
+router.get("/search", optionalAuthenticate,jobController.searchJobs);
 
-router.post("/:job_id/reject", verifyToken, jobController.rejectJob);
-
-router.get("/recruiter/search", verifyToken, jobController.searchJobsForRecruiter);
-
-router.get("/user/search", optionalAuthenticate,jobController.searchJobs);
-
-router.get("/admin/search", verifyToken, jobController.searchJobsForAdmin);
-
-router.get("/user/my-favorites", verifyToken, jobController.getFavoriteJobs);
+router.get("/my-favorites", verifyToken, jobController.getFavoriteJobs);
 
 module.exports = router;

@@ -22,15 +22,12 @@ router.put("/update", verifyToken, authController.updateUser);
 
 router.post("/upload-avatar", verifyToken, upload.single("avatar"), validateAvatarFileType, authController.uploadAvatar);
 
-router.post("/favorite/add/:job_id", verifyToken, authController.addFavoriteJob);
+router.post("/favorites", verifyToken, authController.addFavoriteJob);
 
-router.delete("/favorite/remove/:job_id", verifyToken, authController.removeFavoriteJob);
+router.delete("/favorites/:job_id", verifyToken, authController.removeFavoriteJob);
 
 router.get("/info", verifyToken, authController.getUserInfo);
 
 router.put("/change-password", verifyToken, authController.changePassword);
-
-router.get("/admin/dashboard", verifyToken, authController.dashboard);
-
 
 module.exports = router;
