@@ -173,7 +173,7 @@ export default function Job() {
                       </li>
                       <li className="list-inline-item">
                         <Link
-                          to=""
+                          to={`/${item.job_id}`}
                           className="btn btn-icon btn-sm btn-soft-primary"
                         >
                           <FiArrowUpRight className="icons" />
@@ -183,10 +183,7 @@ export default function Job() {
                   </div>
 
                   <div className="mt-2">
-                    <Link
-                      to={`/job-detail/${item.job_id}`}
-                      className="text-dark title h5"
-                    >
+                    <Link to={`/${item.job_id}`} className="text-dark title h5">
                       {item.title} - Up to {item.salary_end} {item.currency}
                     </Link>
                     <Link

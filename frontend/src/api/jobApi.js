@@ -21,7 +21,7 @@ const jobApi = {
   // Lấy chi tiết công việc
   getJobDetail: async (jobId) => {
     try {
-      const response = await axios.get(`${BASE_URL}/detail/${jobId}`);
+      const response = await axios.get(`${BASE_URL}/${jobId}`);
       return response.data;
     } catch (error) {
       const errorMessage =

@@ -19,6 +19,8 @@ import AccountManagement from "./pages/recruiter/accountManagement";
 import Companies from "./pages/company";
 import CompanyDetail from "./pages/company-detail";
 import Job from "./pages/job";
+
+import JobDetail from "./pages/job-detail";
 function App() {
   return (
     <>
@@ -32,6 +34,8 @@ function App() {
           path="/company-detail/:companyId"
           element={<CompanyDetail />}
         ></Route>
+        <Route path="/jobs/:jobId" element={<JobDetail />}></Route>
+
         <Route path="/recruiter/login" element={<LoginRecruiter />} />
         <Route path="/recruiter/signup" element={<SignupRecruiter />} />
         <Route path="/recruiter" element={<RecruiterLayout />}>
