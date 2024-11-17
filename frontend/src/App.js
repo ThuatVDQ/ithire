@@ -12,6 +12,8 @@ import RecruiterLayout from "./pages/recruiter/layout";
 import Dashboard from "./pages/recruiter/dashboard";
 import JobManagement from "./pages/recruiter/jobManagement";
 import ProfileManagement from "./pages/recruiter/profileManagement";
+import CreateJob from "./pages/recruiter/createJob";
+
 import Job from "./pages/job";
 function App() {
   return (
@@ -27,6 +29,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="jobs" element={<JobManagement />} />
           <Route path="profile" element={<ProfileManagement />} />
+          <Route path="create-job" element={<CreateJob />} />
         </Route>
       </Routes>
     </>

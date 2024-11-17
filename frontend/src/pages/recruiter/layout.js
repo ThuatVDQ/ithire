@@ -88,7 +88,7 @@ export default function RecruiterLayout() {
               Notifications
             </Link>
             <Link
-              to="/"
+              to="/recruiter/login"
               className="nav-link text-danger d-flex align-items-center mb-3"
             >
               <FaSignOutAlt className="me-2" />

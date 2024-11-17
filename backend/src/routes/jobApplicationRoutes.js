@@ -4,7 +4,7 @@ const jobApplicationController = require("../controllers/jobApplicationControlle
 const verifyToken = require("../middleware/authMiddleware");
 
 router.get(
-  "/:job_id/downloadCV",
+  "/downloadCV/:job_id",
   verifyToken,
   jobApplicationController.downloadCV
 );
