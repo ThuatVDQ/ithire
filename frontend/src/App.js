@@ -15,6 +15,7 @@ import ProfileManagement from "./pages/recruiter/profileManagement";
 import CreateJob from "./pages/recruiter/createJob";
 import JobCandidates from "./pages/recruiter/jobCandidates";
 
+import Job from "./pages/job";
 function App() {
   return (
     <>
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/jobs" element={<Job />} />
         <Route path="/recruiter/login" element={<LoginRecruiter />} />
         <Route path="/recruiter/signup" element={<SignupRecruiter />} />
         <Route path="/recruiter" element={<RecruiterLayout />}>

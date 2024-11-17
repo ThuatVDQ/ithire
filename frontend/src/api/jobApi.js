@@ -60,9 +60,17 @@ const jobApi = {
   // Lấy tất cả công việc
   getAllJobs: async (params = {}) => {
     try {
-      const response = await axios.get(`${BASE_URL}/candidates/getAll`, {
+      // Lấy token từ localStorage
+      const token = localStorage.getItem("token");
+
+      // Cấu hình headers
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const response = await axios.get(`${BASE_URL}`, {
         params,
+        headers,
       });
+
       return response.data;
     } catch (error) {
       const errorMessage =
@@ -130,6 +138,21 @@ const jobApi = {
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Failed to fetch favorite jobs.";
+      toast.error(errorMessage);
+      throw error;
+    }
+  },
+  searchJobs: async (params = {}, token = null) => {
+    try {
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.get(`${BASE_URL}/search`, {
+        params,
+        headers,
+      });
+      return response.data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to search jobs.";
       toast.error(errorMessage);
       throw error;
     }
