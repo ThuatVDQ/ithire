@@ -83,14 +83,11 @@ const authApi = {
 
   // Xóa công việc yêu thích
   removeFavoriteJob: async (jobId, token) => {
-    const response = await axios.delete(
-      `${API_BASE_URL}/favorite-job/${jobId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.delete(`${API_BASE_URL}/favorites/${jobId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   },
 

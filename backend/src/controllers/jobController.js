@@ -35,11 +35,15 @@ exports.createJob = async (req, res) => {
     const company = await Company.findOne({ created_by: user.user_id });
 
     if (!user || !company) {
-      return res.status(404).json({ message: "User or associated company not found" });
+      return res
+        .status(404)
+        .json({ message: "User or associated company not found" });
     }
 
     if (user.role_id !== 2) {
-      return res.status(403).json({ message: "Access denied. Only recruiters can create jobs." });
+      return res
+        .status(403)
+        .json({ message: "Access denied. Only recruiters can create jobs." });
     }
 
     const category_ids = [];
@@ -125,7 +129,9 @@ exports.getJobDetail = async (req, res) => {
     const skills = await Skill.find({ skill_id: { $in: job.skills } });
 
     // Tìm các Address liên kết với Job
-    const addresses = await Address.find({ address_id: { $in: job.addresses } });
+    const addresses = await Address.find({
+      address_id: { $in: job.addresses },
+    });
 
     // Trả về thông tin chi tiết của Job cùng với Company, Skills và Addresses
     res.status(200).json({
@@ -238,20 +244,27 @@ exports.getJobsByStatus = async (req, res) => {
     }
 
     // Tìm các công việc dựa trên `status` và áp dụng phân trang
-    const jobs = await Job.find({ status: status.toUpperCase() }).skip(skip).limit(limit);
-    const totalJobs = await Job.countDocuments({ status: status.toUpperCase() });
+    const jobs = await Job.find({ status: status.toUpperCase() })
+      .skip(skip)
+      .limit(limit);
+    const totalJobs = await Job.countDocuments({
+      status: status.toUpperCase(),
+    });
     const totalPages = Math.ceil(totalJobs / limit);
 
     // Lấy tên công ty và danh mục cho mỗi công việc
     const jobsWithDetails = await Promise.all(
       jobs.map(async (job) => {
         // Lấy tên công ty
-        const company = await Company.findOne({ company_id: job.company_id }, 'name');
+        const company = await Company.findOne(
+          { company_id: job.company_id },
+          "name"
+        );
 
         // Lấy tên danh mục thay vì ID
         const categories = await Category.find(
           { category_id: { $in: job.category_ids } },
-          'name'
+          "name"
         );
 
         return {
@@ -276,7 +289,6 @@ exports.getJobsByStatus = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 exports.getAll = async (req, res) => {
   try {
@@ -311,27 +323,36 @@ exports.getAll = async (req, res) => {
       jobs.map(async (job) => {
         let isFavorite = false;
         let apply_status = null;
-    
+
         if (user) {
           // Nếu là candidate đã đăng nhập, xác định `isFavorite` và `apply_status`
           isFavorite = favoriteJobIds.includes(job.job_id);
-    
+
           const application = await JobApplication.findOne({
             job_id: job.job_id,
             user_id: userId,
           });
           apply_status = application ? application.status : null;
         }
-    
+
         // Lấy thêm thông tin kỹ năng, địa chỉ và logo, tên công ty
-        const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
-        const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
-        const company = await Company.findOne({ company_id: job.company_id }, 'name logo');
-    
+        const skills = await Skill.find(
+          { skill_id: { $in: job.skills } },
+          "name"
+        );
+        const addresses = await Address.find(
+          { address_id: { $in: job.addresses } },
+          "city"
+        );
+        const company = await Company.findOne(
+          { company_id: job.company_id },
+          "name logo"
+        );
+
         return {
           ...job.toObject(),
-          skills: skills.map(skill => skill.name),
-          addresses: addresses.map(address => address.city),
+          skills: skills.map((skill) => skill.name),
+          addresses: addresses.map((address) => address.city),
           companyLogo: company ? company.logo : null,
           companyName: company ? company.name : null,
           isFavorite,
@@ -339,7 +360,6 @@ exports.getAll = async (req, res) => {
         };
       })
     );
-    
 
     res.status(200).json({
       jobs: jobsWithDetails,
@@ -355,7 +375,6 @@ exports.getAll = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 exports.applyJob = async (req, res) => {
   try {
@@ -480,7 +499,7 @@ exports.rejectJob = async (req, res) => {
     if (job.status !== "PENDING") {
       return res.status(400).json({ message: "Job is not pending" });
     }
-    
+
     // Update job status to REJECTED
     job.status = "REJECTED";
     await job.save();
@@ -488,7 +507,9 @@ exports.rejectJob = async (req, res) => {
     // Find the recruiter who created the job
     const company = await Company.findOne({ company_id: job.company_id });
     if (!company) {
-      return res.status(404).json({ message: "Company not found for this job" });
+      return res
+        .status(404)
+        .json({ message: "Company not found for this job" });
     }
 
     const recruiter_id = company.created_by; // Assuming `created_by` holds the recruiter ID
@@ -524,24 +545,35 @@ exports.getFavoriteJobs = async (req, res) => {
 
     // Tìm các công việc yêu thích có phân trang
     const favoriteJobs = await Job.find({ job_id: { $in: favoriteJobIds } })
-                                  .skip(skip)
-                                  .limit(limit);
+      .skip(skip)
+      .limit(limit);
 
     // Tính tổng số công việc yêu thích để xác định tổng số trang
-    const totalFavoriteJobs = await Job.countDocuments({ job_id: { $in: favoriteJobIds } });
+    const totalFavoriteJobs = await Job.countDocuments({
+      job_id: { $in: favoriteJobIds },
+    });
     const totalPages = Math.ceil(totalFavoriteJobs / limit);
 
     // Truy vấn để lấy tên các kỹ năng, thành phố, và logo của công ty cho từng công việc yêu thích
     const jobsWithDetails = await Promise.all(
       favoriteJobs.map(async (job) => {
-        const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
-        const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
-        const company = await Company.findOne({ company_id: job.company_id }, 'logo');
+        const skills = await Skill.find(
+          { skill_id: { $in: job.skills } },
+          "name"
+        );
+        const addresses = await Address.find(
+          { address_id: { $in: job.addresses } },
+          "city"
+        );
+        const company = await Company.findOne(
+          { company_id: job.company_id },
+          "logo"
+        );
 
         return {
           ...job.toObject(),
-          skills: skills.map(skill => skill.name),
-          addresses: addresses.map(address => address.city),
+          skills: skills.map((skill) => skill.name),
+          addresses: addresses.map((address) => address.city),
           companyLogo: company ? company.logo : null, // Logo của công ty (nếu có)
         };
       })
@@ -588,7 +620,7 @@ exports.searchJobs = async (req, res) => {
 
     // Tìm kiếm theo tiêu đề (không phân biệt chữ hoa, chữ thường)
     if (title) {
-      query.title = { $regex: title, $options: 'i' };
+      query.title = { $regex: title, $options: "i" };
     }
 
     // Tìm kiếm theo loại công việc
@@ -598,7 +630,9 @@ exports.searchJobs = async (req, res) => {
 
     // Nếu có location, cần tìm các địa chỉ phù hợp
     if (location) {
-      const addresses = await Address.find({ city: { $regex: location, $options: 'i' } });
+      const addresses = await Address.find({
+        city: { $regex: location, $options: "i" },
+      });
       const addressIds = addresses.map((address) => address.address_id);
       query.addresses = { $in: addressIds };
     }
@@ -626,14 +660,23 @@ exports.searchJobs = async (req, res) => {
         }
 
         // Lấy thêm thông tin kỹ năng, địa chỉ, logo công ty, và tên công ty
-        const skills = await Skill.find({ skill_id: { $in: job.skills } }, 'name');
-        const addresses = await Address.find({ address_id: { $in: job.addresses } }, 'city');
-        const company = await Company.findOne({ company_id: job.company_id }, 'name logo');
+        const skills = await Skill.find(
+          { skill_id: { $in: job.skills } },
+          "name"
+        );
+        const addresses = await Address.find(
+          { address_id: { $in: job.addresses } },
+          "city"
+        );
+        const company = await Company.findOne(
+          { company_id: job.company_id },
+          "name logo"
+        );
 
         return {
           ...job.toObject(),
-          skills: skills.map(skill => skill.name),
-          addresses: addresses.map(address => address.city),
+          skills: skills.map((skill) => skill.name),
+          addresses: addresses.map((address) => address.city),
           companyLogo: company ? company.logo : null,
           companyName: company ? company.name : null,
           isFavorite,
@@ -665,13 +708,19 @@ exports.searchJobsForRecruiter = async (req, res) => {
     // Tìm người dùng dựa trên email để xác thực vai trò recruiter
     const user = await User.findOne({ email: userEmail });
     if (!user || user.role_id !== 2) {
-      return res.status(403).json({ message: "Access denied. Only recruiters can access this search." });
+      return res
+        .status(403)
+        .json({
+          message: "Access denied. Only recruiters can access this search.",
+        });
     }
 
     // Lấy công ty mà recruiter này tạo ra
     const company = await Company.findOne({ created_by: user.user_id });
     if (!company) {
-      return res.status(404).json({ message: "Company not found for this recruiter" });
+      return res
+        .status(404)
+        .json({ message: "Company not found for this recruiter" });
     }
 
     const { title, location, type } = req.query;
@@ -684,7 +733,7 @@ exports.searchJobsForRecruiter = async (req, res) => {
 
     // Tìm kiếm theo tiêu đề công việc
     if (title) {
-      query.title = { $regex: title, $options: 'i' };
+      query.title = { $regex: title, $options: "i" };
     }
 
     // Tìm kiếm theo loại công việc
@@ -694,7 +743,9 @@ exports.searchJobsForRecruiter = async (req, res) => {
 
     // Tìm kiếm theo vị trí (location)
     if (location) {
-      const addresses = await Address.find({ city: { $regex: location, $options: 'i' } });
+      const addresses = await Address.find({
+        city: { $regex: location, $options: "i" },
+      });
       const addressIds = addresses.map((address) => address.address_id);
       query.addresses = { $in: addressIds };
     }
@@ -703,8 +754,8 @@ exports.searchJobsForRecruiter = async (req, res) => {
     const jobs = await Job.find(query)
       .skip(skip)
       .limit(limit)
-      .populate({ path: 'categories', select: 'name -_id -category_id' })
-      .populate({ path: 'address', select: 'city -_id -address_id' });
+      .populate({ path: "categories", select: "name -_id -category_id" })
+      .populate({ path: "address", select: "city -_id -address_id" });
 
     const totalJobs = await Job.countDocuments(query);
     const totalPages = Math.ceil(totalJobs / limit);
@@ -740,9 +791,9 @@ exports.getAllForAdmin = async (req, res) => {
     const jobs = await Job.find()
       .skip(skip)
       .limit(limit)
-      .populate({ path: 'company', select: 'name -_id -company_id' })  
-      .populate({ path: 'categories', select: 'name -_id -category_id' })
-      .populate({ path: 'address', select: 'city -_id -address_id' });
+      .populate({ path: "company", select: "name -_id -company_id" })
+      .populate({ path: "categories", select: "name -_id -category_id" })
+      .populate({ path: "address", select: "city -_id -address_id" });
 
     const totalJobs = await Job.countDocuments();
     const totalPages = Math.ceil(totalJobs / limit);
@@ -780,7 +831,7 @@ exports.searchJobsForAdmin = async (req, res) => {
 
     // Tìm kiếm theo tiêu đề công việc
     if (title) {
-      query.title = { $regex: title, $options: 'i' };
+      query.title = { $regex: title, $options: "i" };
     }
 
     // Tìm kiếm theo loại công việc
@@ -790,7 +841,9 @@ exports.searchJobsForAdmin = async (req, res) => {
 
     // Tìm kiếm theo vị trí (location)
     if (location) {
-      const addresses = await Address.find({ city: { $regex: location, $options: 'i' } });
+      const addresses = await Address.find({
+        city: { $regex: location, $options: "i" },
+      });
       const addressIds = addresses.map((address) => address.address_id);
       query.addresses = { $in: addressIds };
     }
@@ -799,9 +852,9 @@ exports.searchJobsForAdmin = async (req, res) => {
     const jobs = await Job.find(query)
       .skip(skip)
       .limit(limit)
-      .populate({ path: 'company', select: 'name -_id -company_id' })  
-      .populate({ path: 'categories', select: 'name -_id -category_id' })
-      .populate({ path: 'address', select: 'city -_id -address_id' });
+      .populate({ path: "company", select: "name -_id -company_id" })
+      .populate({ path: "categories", select: "name -_id -category_id" })
+      .populate({ path: "address", select: "city -_id -address_id" });
 
     const totalJobs = await Job.countDocuments(query);
     const totalPages = Math.ceil(totalJobs / limit);

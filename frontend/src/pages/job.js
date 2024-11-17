@@ -11,7 +11,7 @@ import ScrollTop from "../components/scrollTop";
 import jobApi from "../api/jobApi";
 import authApi from "../api/authApi"; // Import API auth
 
-import { FiBookmark, FiArrowUpRight } from "../assets/icons/vander";
+import { FiBookmark, FiArrowUpRight, FiCheck } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 export default function Job() {
@@ -19,42 +19,58 @@ export default function Job() {
   const [pagination, setPagination] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
 
-  const fetchJobs = async (page) => {
-    try {
-      const response = await jobApi.getAllJobs({ page, limit: 6 });
-      setJobs(response.jobs);
-      setPagination(response.pagination);
-      setCurrentPage(page);
-    } catch (error) {
-      console.error("Error fetching jobs:", error.message);
-    }
-  };
-
-  const handleAddFavoriteJob = async (jobId) => {
+  const handleFavoriteJob = async (jobId, isFavorite) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        toast.error("Please login to add job to favorites.");
+        toast.error("Please login to manage favorites.");
         return;
       }
 
-      const response = await authApi.addFavoriteJob(jobId, token);
-      toast.success("Please login to add job to favorites.");
+      if (isFavorite) {
+        await authApi.removeFavoriteJob(jobId, token);
+        toast.success("Removed from favorites.");
+      } else {
+        await authApi.addFavoriteJob(jobId, token);
+        toast.success("Added to favorites.");
+      }
+
+      // Cập nhật trạng thái công việc
+      setJobs((prevJobs) =>
+        prevJobs.map((job) =>
+          job.job_id === jobId ? { ...job, isFavorite: !isFavorite } : job
+        )
+      );
     } catch (error) {
-      console.error("Error adding favorite job:", error.message);
-      toast.error("Failed to add job to favorites.");
+      console.error("Error managing favorite job:", error.message);
+      toast.error("Failed to update favorites.");
+    }
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= pagination.totalPages) {
+      setCurrentPage(page); // Cập nhật trạng thái currentPage
     }
   };
 
   useEffect(() => {
-    fetchJobs(currentPage);
-  }, [currentPage]);
+    const fetchJobs = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await jobApi.getAllJobs(
+          { page: currentPage, limit: 6 },
+          token
+        );
+        console.log("Response jobs:", response.jobs);
+        setJobs(response.jobs);
+        setPagination(response.pagination);
+      } catch (error) {
+        console.error("Error fetching jobs:", error.message);
+      }
+    };
 
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= pagination.totalPages) {
-      fetchJobs(page);
-    }
-  };
+    fetchJobs();
+  }, [currentPage]);
 
   return (
     <>
@@ -121,10 +137,16 @@ export default function Job() {
                     <ul className="list-unstyled align-items-center mb-0">
                       <li className="list-inline-item">
                         <button
-                          className="btn btn-icon btn-sm btn-soft-primary"
-                          onClick={() => handleAddFavoriteJob(item.job_id)}
+                          className={`btn btn-icon btn-sm ${
+                            item.isFavorite
+                              ? "btn-soft-success"
+                              : "btn-soft-primary"
+                          }`}
+                          onClick={() =>
+                            handleFavoriteJob(item.job_id, item.isFavorite)
+                          }
                         >
-                          <FiBookmark className="icons" />
+                          {item.isFavorite ? <FiCheck /> : <FiBookmark />}
                         </button>
                       </li>
                       <li className="list-inline-item">
@@ -140,13 +162,13 @@ export default function Job() {
 
                   <div className="mt-2">
                     <Link
-                      to={`/job-detail-three/${item.job_id}`}
+                      to={`/job-detail/${item.job_id}`}
                       className="text-dark title h5"
                     >
                       {item.title} - Up to {item.salary_end} {item.currency}
                     </Link>
                     <Link
-                      to="/employer-profile"
+                      to={`/companies/${item.company_id}`}
                       className="text-muted small d-block mt-1"
                     >
                       {item.companyName}
