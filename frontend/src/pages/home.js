@@ -11,10 +11,26 @@ import Companies from "../components/companies";
 import Blog from "../components/blog";
 import Footer from "../components/footer";
 import ScrollTop from "../components/scrollTop";
-
+import jobApi from "../api/jobApi";
 import { FiClock, FiMapPin, FiBookmark } from "../assets/icons/vander";
-
+import { useEffect, useState } from "react";
+import { formatDistanceToNow, parseISO, format } from "date-fns";
 export default function Home() {
+  const [jobs, setJobs] = useState([]);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await jobApi.getAllJobs({ page: 1, limit: 8 });
+        setJobs(response.jobs);
+      } catch (err) {
+        console.error("Error fetching jobs:", err.message);
+      }
+    };
+
+    fetchJobs();
+  }, []);
+
   return (
     <>
       <Navbar navClass="defaultscroll sticky" navLight={true} />
@@ -100,13 +116,13 @@ export default function Home() {
           </div>
 
           <div className="row g-4 mt-0">
-            {/* {jobData.slice(0, 8).map((item, index) => {
+            {jobs.slice(0, 8).map((item, index) => {
               return (
                 <div className="col-12" key={index}>
                   <div className="job-post job-post-list rounded shadow p-4 d-md-flex align-items-center justify-content-between position-relative">
                     <div className="d-flex align-items-center w-310px">
                       <img
-                        src={item.image}
+                        src={item.companyLogo}
                         className="avatar avatar-small rounded shadow p-3 bg-white"
                         alt=""
                       />
@@ -123,21 +139,23 @@ export default function Home() {
 
                     <div className="d-flex align-items-center justify-content-between d-md-block mt-3 mt-md-0 w-100px">
                       <span className="badge bg-soft-primary rounded-pill">
-                        {item.jobTime}
+                        {format(parseISO(item.deadline), "dd/MM/yyyy")}
                       </span>
                       <span className="text-muted d-flex align-items-center fw-medium mt-md-2">
                         <FiClock className="fea icon-sm me-1 align-middle" />
-                        {item.posted} days ago
+                        {formatDistanceToNow(parseISO(item.createdAt), {
+                          addSuffix: true,
+                        })}{" "}
                       </span>
                     </div>
 
                     <div className="d-flex align-items-center justify-content-between d-md-block mt-2 mt-md-0 w-130px">
                       <span className="text-muted d-flex align-items-center">
                         <FiMapPin className="fea icon-sm me-1 align-middle" />
-                        {item.country}
+                        {item.addresses[0]}
                       </span>
                       <span className="d-flex fw-medium mt-md-2">
-                        {item.salary}/mo
+                        {item.salary_start} - {item.salary_end}
                       </span>
                     </div>
 
@@ -158,7 +176,7 @@ export default function Home() {
                   </div>
                 </div>
               );
-            })} */}
+            })}
 
             <div className="col-12">
               <div className="text-center">
