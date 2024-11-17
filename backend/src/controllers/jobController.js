@@ -25,7 +25,7 @@ exports.createJob = async (req, res) => {
       requirement,
       benefit,
       deadline,
-      category_names,
+      categories,
       skills,
       addresses,
     } = req.body;
@@ -43,7 +43,7 @@ exports.createJob = async (req, res) => {
     }
 
     const category_ids = [];
-    for (const name of category_names) {
+    for (const name of categories) {
       let category = await Category.findOne({ name });
       if (!category) {
         category = new Category({ name });
@@ -170,27 +170,42 @@ exports.getJobsByCompany = async (req, res) => {
       title: { $regex: search, $options: "i" }, // Tìm kiếm theo tiêu đề (không phân biệt hoa/thường)
     };
 
-    // Đếm tổng số công việc phù hợp
+    // Sử dụng aggregate để kết hợp Job với JobApplication
+    const jobs = await Job.aggregate([
+      { $match: query }, // Lọc công việc theo điều kiện
+      {
+        $lookup: {
+          from: "jobapplications", // Tên collection JobApplication
+          localField: "job_id",
+          foreignField: "job_id",
+          as: "applications",
+        },
+      },
+      {
+        $addFields: {
+          applicationsCount: { $size: "$applications" }, // Thêm trường đếm số ứng viên
+        },
+      },
+      { $sort: { createdAt: -1 } }, // Sắp xếp theo ngày tạo giảm dần
+      { $skip: (page - 1) * limit }, // Bỏ qua các công việc không thuộc trang hiện tại
+      { $limit: limit }, // Giới hạn số lượng công việc
+    ]);
+
+    // Đếm tổng số công việc
     const totalJobs = await Job.countDocuments(query);
 
-    // Lấy danh sách công việc với phân trang
-    const jobs = await Job.find(query)
-      .skip((page - 1) * limit) // Bỏ qua (page - 1) * limit công việc
-      .limit(limit) // Giới hạn số công việc trả về
-      .sort({ createdAt: -1 }); // Sắp xếp công việc mới nhất lên đầu
-
-    // Chuẩn bị phản hồi
-    const jobsWithDetails = jobs.map((job) => ({
-      id: job._id,
-      title: job.title,
-      status: job.status,
-      applications: job.applications.length, // Tổng số ứng dụng
-      createdAt: job.createdAt, // Ngày tạo công việc
-    }));
-
-    // Trả về phản hồi JSON
+    // Trả về dữ liệu
     res.status(200).json({
-      jobs: jobsWithDetails,
+      jobs: jobs.map((job) => ({
+        id: job.job_id,
+        title: job.title,
+        status: job.status,
+        applications: job.applicationsCount, // Tổng số ứng dụng
+        createdAt: job.createdAt, // Ngày tạo công việc
+        type: job.type, // Thêm type công việc
+        deadline: job.deadline, // Thêm deadline
+        slots: job.slots, // Thêm số lượng vị trí tuyển dụng
+      })),
       pagination: {
         totalJobs,
         totalPages: Math.ceil(totalJobs / limit),
