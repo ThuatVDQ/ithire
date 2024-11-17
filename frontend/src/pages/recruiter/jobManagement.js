@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import axios from "axios";
 import { FaDownload } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function JobManagement() {
+  const navigate = useNavigate();
+
   const [jobs, setJobs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,8 +40,14 @@ export default function JobManagement() {
       console.error("Error fetching jobs:", error);
   
       // Kiểm tra xem lỗi từ backend có chứa thông tin không
-      const errorMessage = error.response?.data || "Unable to fetch jobs. Please try again later.";
+      const errorMessage = error.response?.data?.message || "Unable to fetch jobs. Please try again later.";
   
+      if (errorMessage === "Invalid token.") {
+        // Đăng xuất người dùng nếu token không hợp lệ
+        localStorage.removeItem("token");
+        navigate("/recruiter/login");
+        toast.error("Your session has expired. Please log in again.");
+      }
       // Hiển thị thông báo lỗi từ backend
       toast.error(errorMessage);
     }
@@ -115,7 +123,12 @@ export default function JobManagement() {
             {jobs.length > 0 ? (
               jobs.map((job) => (
                 <tr key={job.id} style={{ verticalAlign: "middle" }}>
-                  <td>{job.title}</td>
+                  <td>
+  <Link to={`/recruiter/jobs/${job.id}/candidates`} className="text-decoration-none">
+    {job.title}
+  </Link>
+</td>
+
                   <td>{job.applications}</td>
                   <td>
                     <span

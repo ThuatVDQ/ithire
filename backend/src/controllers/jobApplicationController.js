@@ -55,27 +55,47 @@ exports.downloadCV = async (req, res) => {
 exports.getJobApplicationsByJobId = async (req, res) => {
   try {
     const userRoleId = req.user.role_id; 
-    const jobId = Number(req.params.job_id); // Ensure job_id is a number
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const jobId = Number(req.params.job_id); // Đảm bảo job_id là số
+    const page = parseInt(req.query.page, 10) || 1; // Trang hiện tại, mặc định là 1
+    const limit = parseInt(req.query.limit, 10) || 10; // Số bản ghi mỗi trang, mặc định là 10
     const skip = (page - 1) * limit;
 
-    // Kiểm tra xem người dùng có phải là recruiter không
+    // Xác minh quyền truy cập
     if (userRoleId !== 2) {
-      return res.status(403).json({ message: "Access denied. Only recruiters can change the application status." });
+      return res.status(403).json({ message: "Access denied. Only recruiters can access this resource." });
     }
 
-    // Fetch job applications with pagination
+    // Lấy thông tin công việc (để lấy `title`)
+    const job = await Job.findOne({ job_id: jobId });
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    // Tìm các ứng dụng cho công việc cụ thể với phân trang
     const applications = await JobApplication.find({ job_id: jobId })
       .skip(skip)
       .limit(limit)
-      .populate({ path: "user", select: "full_name" }) // Example populate for user details
+      .populate({ path: "user", select: "full_name email phone" })
+      .populate({ path: "cv", select: "cv_url" }); 
 
+    // Đếm tổng số ứng dụng
     const totalApplications = await JobApplication.countDocuments({ job_id: jobId });
     const totalPages = Math.ceil(totalApplications / limit);
 
+    // Trả về kết quả
     res.status(200).json({
-      applications,
+      job: {
+        job_id: jobId,
+        title: job.title, // Thêm tiêu đề công việc
+      },
+      applications: applications.map(app => ({
+        id: app.job_application_id,
+        cv_id: app.cv_id, // CV ID
+        user: app.user,
+        cv_url: app.cv.cv_url, 
+        status: app.status,
+        createdAt: app.createdAt,
+      })),
       pagination: {
         totalApplications,
         totalPages,

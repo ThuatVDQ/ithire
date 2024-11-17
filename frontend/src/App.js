@@ -13,6 +13,8 @@ import Dashboard from "./pages/recruiter/dashboard";
 import JobManagement from "./pages/recruiter/jobManagement";
 import ProfileManagement from "./pages/recruiter/profileManagement";
 import CreateJob from "./pages/recruiter/createJob";
+import JobCandidates from "./pages/recruiter/jobCandidates";
+
 import Companies from "./pages/company";
 import Job from "./pages/job";
 function App() {
@@ -31,6 +33,7 @@ function App() {
           <Route path="jobs" element={<JobManagement />} />
           <Route path="profile" element={<ProfileManagement />} />
           <Route path="create-job" element={<CreateJob />} />
+          <Route path="jobs/:jobId/candidates" element={<JobCandidates />} />
         </Route>
       </Routes>
     </>
