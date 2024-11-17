@@ -16,6 +16,7 @@ import CreateJob from "./pages/recruiter/createJob";
 import JobCandidates from "./pages/recruiter/jobCandidates";
 
 import Companies from "./pages/company";
+import CompanyDetail from "./pages/company-detail";
 import Job from "./pages/job";
 function App() {
   return (
@@ -26,6 +27,10 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/jobs" element={<Job />} />
         <Route path="/companies" element={<Companies />}></Route>
+        <Route
+          path="/company-detail/:companyId"
+          element={<CompanyDetail />}
+        ></Route>
         <Route path="/recruiter/login" element={<LoginRecruiter />} />
         <Route path="/recruiter/signup" element={<SignupRecruiter />} />
         <Route path="/recruiter" element={<RecruiterLayout />}>
