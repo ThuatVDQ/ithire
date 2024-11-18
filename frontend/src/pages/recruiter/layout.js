@@ -9,6 +9,10 @@ import {
   FaSignOutAlt,
   FaBars,
   FaTimes,
+  FaPlus,
+  FaBuilding,
+  FaInfo,
+  FaRegUserCircle,
 } from "react-icons/fa";
 
 export default function RecruiterLayout() {
@@ -67,24 +71,24 @@ export default function RecruiterLayout() {
               Manage Jobs
             </Link>
             <Link
-              to="/recruiter/applications"
+              to="/recruiter/create-job"
               className="nav-link text-white d-flex align-items-center mb-3"
             >
-              <FaUsers className="me-2" />
-              Candidate Applications
+              <FaPlus className="me-2" />
+              Create Job
             </Link>
             <Link
               to="/recruiter/profile"
               className="nav-link text-white d-flex align-items-center mb-3"
             >
-              <FaUserCircle className="me-2" />
+              <FaBuilding className="me-2" />
               Profile Management
             </Link>
             <Link
               to="/recruiter/update-info"
               className="nav-link text-white d-flex align-items-center mb-3"
             >
-              <FaBell className="me-2" />
+              <FaRegUserCircle className="me-2" />
               Account Management
             </Link>
             <Link

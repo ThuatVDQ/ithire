@@ -6,29 +6,58 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 export default function FormCreateJob({ jobData, onSubmit }) {
-  const [formData, setFormData] = useState({
-    title: jobData?.title || "",
-    description: jobData?.description || "",
-    requirement: jobData?.requirement || "",
-    benefit: jobData?.benefit || "",
-    salary_start: jobData?.salary_start || 0,
-    salary_end: jobData?.salary_end || 0,
-    currency: jobData?.currency || "USD",
-    deadline: jobData?.deadline ? new Date(jobData.deadline) : null,
-    experience: jobData?.experience || "",
-    level: jobData?.level || "",
-    position: jobData?.position || "",
-    slots: jobData?.slots || 1,
-    type: jobData?.type || "FULL_TIME",
+
+  const [provinceData, setProvinceData] = useState([]);
+
+  const [formData, setFormData] = useState(() => ({
+    title: jobData?.job?.title || "",
+    description: jobData?.job?.description || "",
+    requirement: jobData?.job?.requirement || "",
+    benefit: jobData?.job?.benefit || "",
+    salary_start: jobData?.job?.salary_start || 0,
+    salary_end: jobData?.job?.salary_end || 0,
+    currency: jobData?.job?.currency || "USD",
+    deadline: jobData?.job?.deadline ? new Date(jobData.job.deadline) : null,
+    experience: jobData?.job?.experience || "",
+    level: jobData?.job?.level || "",
+    position: jobData?.job?.position || "",
+    slots: jobData?.job?.slots || 1,
+    type: jobData?.job?.type || "FULL_TIME",
     categories: jobData?.categories || [],
     skills: jobData?.skills || [],
     addresses: jobData?.addresses?.length > 0
-      ? jobData.addresses
-      : [{ city: "", district: "", street: "", districts: [] }], 
-    status: jobData?.status || "PENDING",
-  });
+      ? jobData.addresses.map((address) => {
+          // Find city data from provinceData
+          const cityData = provinceData.find((province) => province.name === address.city);
 
-  const [provinceData, setProvinceData] = useState([]);
+          return {
+            city: address.city || "",
+            district: address.district || "",
+            street: address.street || "",
+            districts: cityData ? cityData.districts : [], // Use districts from provinceData if city matches
+          };
+        })
+      : [{ city: "", district: "", street: "", districts: [] }],
+    status: jobData?.job?.status || "PENDING",
+  }));  
+
+
+  useEffect(() => {
+    if (jobData && provinceData.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        addresses: jobData.addresses.map((address) => {
+          const cityData = provinceData.find((province) => province.name === address.city);
+          return {
+            city: address.city || "",
+            district: address.district || "",
+            street: address.street || "",
+            districts: cityData ? cityData.districts : [],
+          };
+        }),
+      }));
+    }
+  }, [jobData, provinceData]);
 
   useEffect(() => {
     fetchProvinces();
@@ -108,9 +137,7 @@ export default function FormCreateJob({ jobData, onSubmit }) {
     if (!validateForm()) {
         return;
       }
-    onSubmit(formData);
-    
-    console.log(formData)
+    onSubmit(formData);    
   };
 
   return (
@@ -280,31 +307,32 @@ export default function FormCreateJob({ jobData, onSubmit }) {
     </div>
     {formData.categories.map((category, index) => (
       <div key={index} className="d-flex align-items-center gap-2 mb-2">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Category name"
-          value={category}
-          onChange={(e) =>
-            setFormData((prev) => {
-              const updatedCategories = [...prev.categories];
-              updatedCategories[index] = e.target.value;
-              return { ...prev, categories: updatedCategories };
-            })
-          }
-        />
-        <FaMinusCircle
-          className="text-danger cursor-pointer"
-          size={24}
-          title="Remove Category"
-          onClick={() =>
-            setFormData((prev) => ({
-              ...prev,
-              categories: prev.categories.filter((_, i) => i !== index),
-            }))
-          }
-        />
-      </div>
+      <input
+        type="text"
+        className="form-control"
+        placeholder="Category name"
+        value={category.name || ""} // Đảm bảo không bị undefined
+        onChange={(e) =>
+          setFormData((prev) => {
+            const updatedCategories = [...prev.categories];
+            updatedCategories[index] = { ...updatedCategories[index], name: e.target.value }; // Cập nhật chính xác key `name`
+            return { ...prev, categories: updatedCategories };
+          })
+        }
+      />
+      <FaMinusCircle
+        className="text-danger cursor-pointer"
+        size={24}
+        title="Remove Category"
+        onClick={() =>
+          setFormData((prev) => {
+            const updatedCategories = prev.categories.filter((_, i) => i !== index); // Loại bỏ phần tử theo index
+            return { ...prev, categories: updatedCategories };
+          })
+        }
+      />
+    </div>
+    
     ))}
   </div>
 </div>
