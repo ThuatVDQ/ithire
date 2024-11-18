@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import authApi from "../../api/authApi"; 
+import ChangePasswordModal from "../../components/changePasswordModal";
 
 export default function AccountManagement() {
   const [profile, setProfile] = useState({
@@ -15,6 +16,22 @@ export default function AccountManagement() {
   const [isEditPhone, setIsEditPhone] = useState(false); // Chế độ chỉ chỉnh sửa (Không cần tạo mới)
   const [avatarFile, setAvatarFile] = useState(null); // Quản lý file avatar
   const [loading, setLoading] = useState(true); // Kiểm tra trạng thái tải dữ liệu
+
+  const [showModal, setShowModal] = useState(false);
+
+  const handleOpenModal = () => setShowModal(true);
+  const handleCloseModal = () => setShowModal(false);
+  const changePassword = async (data) => {
+    try {
+      // Gọi API để thay đổi mật khẩu
+      const response = await authApi.changePassword(data, localStorage.getItem("token"));
+      toast.success(response.message);
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error changing password:", error.response.data.message);
+      toast.error(error.response.data.message || "Failed to change password.");
+    }
+  };
 
   // Lấy thông tin tài khoản của người dùng từ API
   const fetchUserInfo = async () => {
@@ -238,8 +255,20 @@ export default function AccountManagement() {
               </button>
             </div>
           </form>
+          <div className="d-flex justify-content-end p-4">
+          <button className="btn btn-primary" onClick={handleOpenModal}>
+        Change Password
+      </button></div>
         </div>
       </div>
+
+      
+
+      <ChangePasswordModal
+        show={showModal}
+        onClose={handleCloseModal}
+        onSubmit={changePassword}
+      />
     </div>
   );
 }

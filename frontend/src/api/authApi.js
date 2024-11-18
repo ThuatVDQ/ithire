@@ -103,7 +103,7 @@ const authApi = {
 
   // Thay đổi mật khẩu
   changePassword: async (data, token) => {
-    const response = await axios.post(`${API_BASE_URL}/change-password`, data, {
+    const response = await axios.put(`${API_BASE_URL}/change-password`, data, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
