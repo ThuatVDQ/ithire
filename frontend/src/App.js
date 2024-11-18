@@ -36,6 +36,7 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/jobs" element={<Job />} />
@@ -65,7 +66,7 @@ function App() {
           <Route path="jobs" element={<JobManagementAdmin />} />
           <Route path="companies" element={<CompaniesManagement />} />
           <Route path="users" element={<UsersManagement />} />
-          <Route path="jobs/:jobId" element={<JobCandidates />} /> 
+          <Route path="jobs/:jobId" element={<JobCandidates />} />
         </Route>
       </Routes>
     </>

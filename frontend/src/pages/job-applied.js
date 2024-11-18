@@ -19,7 +19,6 @@ export default function JobApplied() {
     const fetchApplications = async () => {
       try {
         const data = await jobApplicationApi.getUserApplications();
-        console.log(data);
         setApplications(data.applications);
       } catch (error) {
         console.error("Error fetching applications:", error);
