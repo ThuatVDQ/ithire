@@ -642,7 +642,6 @@ exports.searchJobs = async (req, res) => {
 
     // Thực hiện truy vấn với phân trang
     const jobs = await Job.find(query).skip(skip).limit(limit);
-    console.log("Jobs found:", jobs);
     const totalJobs = await Job.countDocuments(query);
     const totalPages = Math.ceil(totalJobs / limit);
 

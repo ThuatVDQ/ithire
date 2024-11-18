@@ -31,6 +31,26 @@ export default function Home() {
     fetchJobs();
   }, []);
 
+  const handleSearch = async ({ keyword, location, type }) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await jobApi.searchJobs(
+        {
+          page: 1,
+          limit: 6,
+          keyword,
+          location,
+          type,
+        },
+        token
+      );
+
+      setJobs(response.jobs);
+    } catch (error) {
+      console.error("Error searching jobs:", error.message);
+    }
+  };
+
   return (
     <>
       <Navbar navClass="defaultscroll sticky" navLight={true} />
@@ -53,7 +73,7 @@ export default function Home() {
                 </p>
 
                 <div className="d-md-flex justify-content-between align-items-center bg-white shadow rounded p-2 mt-4">
-                  <FormSelect />
+                  <FormSelect onSearch={handleSearch}/>
                 </div>
 
                 <div className="mt-2">

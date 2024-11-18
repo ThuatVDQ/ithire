@@ -36,14 +36,14 @@ export default function FormSelect({ onSearch }) {
     fetchProvinces();
   }, []);
 
-  // Kích hoạt tìm kiếm khi có thay đổi ở các trường
-  useEffect(() => {
+  const handleSearch = (e) => {
+    e.preventDefault();
     onSearch({
       keyword,
       location: selectedLocation ? selectedLocation.value : "",
       type: selectedType ? selectedType.value : "",
     });
-  }, [keyword, selectedLocation, selectedType, onSearch]);
+  };
 
   // Tùy chỉnh giao diện cho React-Select
   const customStyles = {
@@ -84,67 +84,77 @@ export default function FormSelect({ onSearch }) {
   };
 
   return (
-    <form className="card-body text-start">
-  <div className="registration-form text-dark text-start">
-    <div className="row g-3 align-items-center"> {/* Gắn `g-3` để tạo khoảng cách */}
-      {/* Input từ khóa */}
-      <div className="col-lg-4 col-md-6 col-12">
-        <div className="mb-3 mb-sm-0">
-          <div className="filter-search-form position-relative filter-border d-flex align-items-center">
-            <FiSearch className="fea icon-20 icons me-2" />
-            <input
-              name="name"
-              type="text"
-              id="job-keyword"
-              className="form-control filter-input-box bg-light border-0"
-              placeholder="Search your keywords"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Select tỉnh/thành phố */}
-      <div className="col-lg-4 col-md-6 col-12">
-        <div className="mb-3 mb-sm-0">
-          <div className="filter-search-form position-relative filter-border d-flex align-items-center">
-            <FiMapPin className="fea icon-20 icons me-2" />
-            <div style={{ flex: 1 }}>
-              <Select
-                options={locationOptions}
-                value={selectedLocation}
-                onChange={setSelectedLocation}
-                styles={customStyles}
-                placeholder="Select location"
-                isClearable
-              />
+    <form className="card-body text-start" onSubmit={handleSearch}>
+      <div className="registration-form text-dark text-start">
+        <div className="row g-3 align-items-center">
+          {/* Input từ khóa */}
+          <div className="col-lg-3 col-md-6 col-12">
+            <div className="mb-3 mb-sm-0">
+              <div className="filter-search-form position-relative filter-border d-flex align-items-center">
+                <FiSearch className="fea icon-20 icons me-2" />
+                <input
+                  name="name"
+                  type="text"
+                  id="job-keyword"
+                  className="form-control filter-input-box bg-light border-0"
+                  placeholder="Search your keywords"
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Select loại công việc */}
-      <div className="col-lg-4 col-md-6 col-12">
-        <div className="mb-3 mb-sm-0">
-          <div className="filter-search-form position-relative filter-border d-flex align-items-center">
-            <FiBriefcase className="fea icon-20 icons me-2" />
-            <div style={{ flex: 1 }}>
-              <Select
-                options={typeOptions}
-                value={selectedType}
-                onChange={setSelectedType}
-                styles={customStyles}
-                placeholder="Select type"
-                isClearable
-              />
+          {/* Select tỉnh/thành phố */}
+          <div className="col-lg-3 col-md-6 col-12">
+            <div className="mb-3 mb-sm-0">
+              <div className="filter-search-form position-relative filter-border d-flex align-items-center">
+                <FiMapPin className="fea icon-20 icons me-2" />
+                <div style={{ flex: 1 }}>
+                  <Select
+                    options={locationOptions}
+                    value={selectedLocation}
+                    onChange={setSelectedLocation}
+                    styles={customStyles}
+                    placeholder="Select location"
+                    isClearable
+                  />
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* Select loại công việc */}
+          <div className="col-lg-3 col-md-6 col-12">
+            <div className="mb-3 mb-sm-0">
+              <div className="filter-search-form position-relative filter-border d-flex align-items-center">
+                <FiBriefcase className="fea icon-20 icons me-2" />
+                <div style={{ flex: 1 }}>
+                  <Select
+                    options={typeOptions}
+                    value={selectedType}
+                    onChange={setSelectedType}
+                    styles={customStyles}
+                    placeholder="Select type"
+                    isClearable
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Nút Search */}
+          <div className="col-lg-3 col-md-6 col-12">
+            <button
+              type="submit"
+              className="btn btn-primary w-100"
+              style={{ height: "48px" }}
+            >
+              Search
+            </button>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</form>
-
+    </form>
   );
 }
