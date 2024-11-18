@@ -192,6 +192,9 @@ export default function Navbar({ navClass, navLight }) {
             <li className={manu === "companies" ? "active" : ""}>
               <Link to="/companies">Companies</Link>
             </li>
+            <li className={manu === "job-applied" ? "active" : ""}>
+              <Link to="/job-applied">Job applied</Link>
+            </li>
           </ul>
         </div>
       </div>
