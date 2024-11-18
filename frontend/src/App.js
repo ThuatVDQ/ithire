@@ -29,6 +29,7 @@ import JobDetailAdmin from "./pages/admin/jobDetail";
 import Companies from "./pages/company";
 import CompanyDetail from "./pages/company-detail";
 import Job from "./pages/job";
+import JobApplied from "./pages/job-applied";
 
 import JobDetail from "./pages/job-detail";
 function App() {
@@ -36,6 +37,7 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/jobs" element={<Job />} />
@@ -44,6 +46,7 @@ function App() {
           path="/company-detail/:companyId"
           element={<CompanyDetail />}
         ></Route>
+        <Route path="/job-applied" element={<JobApplied />}></Route>
         <Route path="/jobs/:jobId" element={<JobDetail />}></Route>
 
         <Route path="/recruiter/login" element={<LoginRecruiter />} />
@@ -65,7 +68,7 @@ function App() {
           <Route path="jobs/:jobId" element={<JobDetailAdmin />} />
           <Route path="companies" element={<CompaniesManagement />} />
           <Route path="users" element={<UsersManagement />} />
-          <Route path="jobs/:jobId" element={<JobCandidates />} /> 
+          <Route path="jobs/:jobId" element={<JobCandidates />} />
         </Route>
       </Routes>
     </>

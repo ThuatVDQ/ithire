@@ -2,6 +2,7 @@ const JobApplication = require("../models/JobApplication");
 const CV = require("../models/CV");
 const User = require("../models/User");
 const Job = require("../models/Job");
+const Company = require("../models/Company");
 const Notification = require("../controllers/notificationController");
 const path = require("path");
 const fs = require("fs");
@@ -62,11 +63,9 @@ exports.getJobApplicationsByJobId = async (req, res) => {
 
     // Xác minh quyền truy cập
     if (userRoleId !== 2) {
-      return res
-        .status(403)
-        .json({
-          message: "Access denied. Only recruiters can access this resource.",
-        });
+      return res.status(403).json({
+        message: "Access denied. Only recruiters can access this resource.",
+      });
     }
 
     // Lấy thông tin công việc (để lấy `title`)
@@ -123,12 +122,10 @@ exports.changeApplicationStatus = async (req, res) => {
 
     // Check if the user is a recruiter
     if (userRoleId !== 2) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Access denied. Only recruiters can change the application status.",
-        });
+      return res.status(403).json({
+        message:
+          "Access denied. Only recruiters can change the application status.",
+      });
     }
 
     // Get application details
@@ -190,7 +187,7 @@ exports.checkJobApplication = async (req, res) => {
     if (application) {
       return res.status(200).json({
         applied: true,
-        applicationId: application._id,
+        applicationId: application.application_id,
         status: application.status,
       });
     }
@@ -198,6 +195,80 @@ exports.checkJobApplication = async (req, res) => {
     return res.status(200).json({ applied: false });
   } catch (error) {
     console.error("Error checking job application:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getUserApplications = async (req, res) => {
+  try {
+    const email = req.user.email;
+
+    // Find the user based on email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Find all job applications for the user based on `user_id`
+    const jobApplications = await JobApplication.find({
+      user_id: user.user_id,
+    });
+
+    if (!jobApplications || jobApplications.length === 0) {
+      return res.status(404).json({ message: "No job applications found." });
+    }
+
+    // Extract `job_id` and `cv_id` from the applications
+    const jobIds = jobApplications.map((app) => app.job_id);
+    const cvIds = jobApplications.map((app) => app.cv_id);
+
+    // Fetch job and CV data
+    const jobs = await Job.find({ job_id: { $in: jobIds } }).select(
+      "job_id title description company_id"
+    );
+    const cvs = await CV.find({ cv_id: { $in: cvIds } }).select("cv_id cv_url");
+
+    // Fetch company data if needed
+    const companyIds = jobs.map((job) => job.company_id);
+    const companies = await Company.find({
+      company_id: { $in: companyIds },
+    }).select("company_id name logo");
+
+    // Map data into job applications
+    const applications = jobApplications.map((app) => {
+      const job = jobs.find((job) => job.job_id === app.job_id);
+      const cv = cvs.find((cv) => cv.cv_id === app.cv_id);
+      const company = job
+        ? companies.find((comp) => comp.company_id === job.company_id)
+        : null;
+
+      return {
+        application_id: app.job_application_id,
+        job_id: app.job_id, // Include `job_id`
+        status: app.status,
+        createdAt: app.createdAt,
+        updatedAt: app.updatedAt,
+        job: job
+          ? {
+              job_id: job.job_id, // Include `job_id`
+              title: job.title,
+              description: job.description,
+              company: company
+                ? {
+                    company_id: company.company_id, // Include `company_id`
+                    name: company.name,
+                    logo: company.logo,
+                  }
+                : null,
+            }
+          : null,
+        cv: cv ? { url: cv.cv_url } : null,
+      };
+    });
+
+    res.status(200).json({ applications });
+  } catch (error) {
+    console.error("Error fetching user applications:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
