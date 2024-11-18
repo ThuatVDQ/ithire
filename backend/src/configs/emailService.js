@@ -87,4 +87,48 @@ const verifyOTP = async (email, otp) => {
     return "OTP verified successfully";
   };  
 
-module.exports = { sendOTPForAction, verifyOTP };
+  const sendApplicationAcceptedEmail = async (candidateEmail, jobTitle, companyName) => {
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: candidateEmail,
+      subject: `Your Application for ${jobTitle} at ${companyName} Has Been Accepted!`,
+      text: `Dear Candidate,
+  
+      Congratulations! Your application for the job position of ${jobTitle} at ${companyName} has been accepted. Please follow up with the recruiter for the next steps.
+  
+      Best regards,
+      The Recruitment Team`,
+    };
+  
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log("Acceptance email sent to:", candidateEmail);
+    } catch (error) {
+      console.error("Error sending application acceptance email:", error);
+      throw new Error("Error sending email");
+    }
+  };
+  
+  const sendJobRejectionEmail = async (recruiterEmail, jobTitle, companyName) => {
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: recruiterEmail,
+      subject: `Job Rejection for ${jobTitle} at ${companyName}`,
+      text: `Dear Recruiter,
+  
+      We regret to inform you that the job application for the position of ${jobTitle} at ${companyName} has been rejected. Please review the details and make any necessary adjustments.
+  
+      Best regards,
+      The Admin Team`,
+    };
+  
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log("Rejection email sent to:", recruiterEmail);
+    } catch (error) {
+      console.error("Error sending job rejection email:", error);
+      throw new Error("Error sending email");
+    }
+  };
+
+module.exports = { sendOTPForAction, verifyOTP, sendApplicationAcceptedEmail, sendJobRejectionEmail };
