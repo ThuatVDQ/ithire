@@ -28,6 +28,7 @@ import UsersManagement from "./pages/admin/userManagement";
 import Companies from "./pages/company";
 import CompanyDetail from "./pages/company-detail";
 import Job from "./pages/job";
+import JobApplied from "./pages/job-applied";
 
 import JobDetail from "./pages/job-detail";
 function App() {
@@ -43,6 +44,7 @@ function App() {
           path="/company-detail/:companyId"
           element={<CompanyDetail />}
         ></Route>
+        <Route path="/job-applied" element={<JobApplied />}></Route>
         <Route path="/jobs/:jobId" element={<JobDetail />}></Route>
 
         <Route path="/recruiter/login" element={<LoginRecruiter />} />

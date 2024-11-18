@@ -88,6 +88,20 @@ const jobApplicationApi = {
       throw error;
     }
   },
+
+  getUserApplications: async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/job-applied`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      return response.data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch applications.";
+      toast.error(errorMessage);
+      throw error;
+    }
+  },
 };
 
 export default jobApplicationApi;
