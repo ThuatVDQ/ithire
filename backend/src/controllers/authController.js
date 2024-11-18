@@ -492,3 +492,82 @@ exports.dashboard = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.getAllUsers = async (req, res) => {
+  try {
+
+    const  role_id  = parseInt(req.query.role_id) || null;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const userEmail = req.user.email;
+
+    // Tìm user và xác định nếu user có phải là admin
+    const user = await User.findOne({ email: userEmail });
+    if (!user || user.role_id !== 1) {  // role_id = 1 cho admin
+      return res.status(403).json({ message: "Access denied. Only admins can access this dashboard." });
+    }
+
+    const query = { role_id: { $ne: 1 } };
+    if (role_id) {
+      query.role_id = role_id;
+    }
+
+
+    // Lấy tất cả người dùng (không bao gồm admin)
+    //filter theo role nua
+    const users = await User.find(query)
+    .sort({ createdAt: -1 }) // Sắp xếp theo thời gian tạo mới nhất
+    .skip(skip)
+    .limit(limit)
+    const totalUsers = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    res.status(200).json({
+      users,
+      pagination: {
+        totalUsers,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
+  } catch (error) { 
+    console.error("Error fetching all users:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
+exports.blockUser = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const { status } = req.body;
+
+    const userEmail = req.user.email;
+
+    // Tìm user và xác định nếu user có phải là admin
+    const user = await User.findOne({ email : userEmail });
+    if (!user || user.role_id !== 1) {  // role_id = 1 cho admin
+      return res.status(403).json({ message: "Access denied. Only admins can block users." });
+    }
+
+    // Tìm người dùng cần block
+    console.log(user_id);
+    const userBlock = await User.findOne({ user_id : user_id });
+    if (!userBlock) {
+      return res.status(404).json({ message: "User not found" });
+    } 
+
+    userBlock.status = status;
+    userBlock.updatedAt = Date.now();
+    userBlock.isOTPVerified = false;
+    await userBlock.save();
+
+    res.status(200).json({ message: "User blocked successfully" });
+  } catch (error) {
+    console.error("Error blocking user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+

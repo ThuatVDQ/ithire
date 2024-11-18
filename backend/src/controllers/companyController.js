@@ -89,8 +89,19 @@ exports.getAll = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const companies = await Company.find().skip(skip).limit(limit);
+    // Lấy từ khóa tìm kiếm từ query
+    const searchName = req.query.name || "";
 
+    // Tạo query tìm kiếm
+    const query = {};
+    if (searchName) {
+      query.name = { $regex: searchName, $options: "i" }; // Tìm kiếm không phân biệt hoa thường
+    }
+
+    // Lấy danh sách công ty với phân trang
+    const companies = await Company.find(query).skip(skip).limit(limit);
+
+    // Đếm số lượng công việc của từng công ty
     const companiesWithJobCount = await Promise.all(
       companies.map(async (company) => {
         const totalJobs = await Job.countDocuments({
@@ -103,7 +114,8 @@ exports.getAll = async (req, res) => {
       })
     );
 
-    const totalCompanies = await Company.countDocuments();
+    // Tổng số công ty và số trang
+    const totalCompanies = await Company.countDocuments(query);
     const totalPages = Math.ceil(totalCompanies / limit);
 
     res.status(200).json({
@@ -120,6 +132,7 @@ exports.getAll = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.getCompanyByUser = async (req, res) => {
   try {

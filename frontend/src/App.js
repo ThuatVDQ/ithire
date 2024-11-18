@@ -22,6 +22,8 @@ import LoginAdmin from "./pages/login/loginAsAdmin";
 import AdminLayout from "./pages/admin/layout";
 import DashboardAdmin from "./pages/admin/dashboard";
 import JobManagementAdmin from "./pages/admin/jobManagement";
+import CompaniesManagement from "./pages/admin/companyManagement";
+import UsersManagement from "./pages/admin/userManagement";
 
 import Companies from "./pages/company";
 import CompanyDetail from "./pages/company-detail";
@@ -59,7 +61,8 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<DashboardAdmin />} />
           <Route path="jobs" element={<JobManagementAdmin />} />
-          <Route path="users" element={<ProfileManagement />} />
+          <Route path="companies" element={<CompaniesManagement />} />
+          <Route path="users" element={<UsersManagement />} />
           <Route path="jobs/:jobId" element={<JobCandidates />} /> 
         </Route>
       </Routes>
