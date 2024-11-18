@@ -58,7 +58,7 @@ export default function EditJobPage() {
 
   return (
     <div>
-      <h3 className="text-center my-4">Edit Job</h3>
+      <h3 className="text-center text-white font-bold py-4 bg-primary">Edit Job</h3>
       {jobData && <FormCreateJob jobData={jobData} onSubmit={handleUpdateJob} />}
     </div>
   );

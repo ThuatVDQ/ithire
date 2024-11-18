@@ -167,7 +167,7 @@ export default function JobManagement() {
                   </td>
                   <td className="d-flex justify-content-center gap-2">
                     <Link
-                      to={`/recruiter/jobs/edit/${job.id}`}
+                      to={`/recruiter/jobs/edit-job/${job.id}`}
                       className="btn btn-warning btn-sm"
                     >
                       Edit

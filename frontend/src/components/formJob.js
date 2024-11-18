@@ -142,7 +142,7 @@ export default function FormCreateJob({ jobData, onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit} className="bg-light rounded shadow-sm" style={{ padding: "50px 120px" }}>
-  <h3 className="mb-4">{jobData ? "Edit Job" : "Create Job"}</h3>
+  <h3 className="mb-4">{jobData ? `Edit job ${formData.title}` : "Create Job"}</h3>
 
   <div className="row mb-3">
     <div className="col-md-6">

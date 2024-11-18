@@ -28,7 +28,7 @@ export default function CreateJobPage() {
 
   return (
     <div>
-      <h3 className="text-center my-4 ">Create a New Job</h3>
+      <h3 className="text-center py-4 text-white font-bold bg-primary ">Create a New Job</h3>
       <FormCreateJob onSubmit={handleCreateJob} />
     </div>
   );

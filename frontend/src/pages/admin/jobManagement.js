@@ -113,11 +113,11 @@ export default function ManageJobs() {
   };
 
   return (
-    <div className="container mt-4">
-      <h2 className="mb-4">Manage Jobs</h2>
-
+    <div className="">
+      <h2 className="mb-4 bg-info p-4 text-white text-center">Manage Jobs</h2>
+<div className="container">
       {/* Search Filters */}
-      <Form onSubmit={handleSearch} className="d-flex flex-wrap gap-3 align-items-center mb-4">
+      <Form onSubmit={handleSearch} className="d-flex justify-content-center flex-wrap gap-3 align-items-center mb-4">
   {/* Search by Title */}
   <div className="col-lg-3 col-md-4 col-sm-6" style={{ maxWidth: "200px" }}>
     <Form.Control
@@ -162,13 +162,13 @@ export default function ManageJobs() {
 
   {/* Search Button */}
   <div className="col-lg-3 col-md-4 col-sm-6" style={{ maxWidth: "120px" }}>
-  <Button type="submit" variant="primary" className="d-flex align-items-center justify-content-center">
-  <FaSearch className="me-2" />
-  <span>SEARCH</span>
-</Button>
-
+    <Button type="submit" variant="primary" className="d-flex align-items-center justify-content-center">
+      <FaSearch className="me-2" />
+      <span>SEARCH</span>
+    </Button>
   </div>
 </Form>
+
 
 
 
@@ -287,6 +287,7 @@ export default function ManageJobs() {
           )}
         </>
       )}
+    </div>
     </div>
   );
 }
