@@ -195,6 +195,9 @@ export default function Navbar({ navClass, navLight }) {
             <li className={manu === "job-applied" ? "active" : ""}>
               <Link to="/job-applied">Job applied</Link>
             </li>
+            <li className={manu === "favorite-jobs" ? "active" : ""}>
+              <Link to="/favorite-jobs">Saved jobs</Link>
+            </li>
           </ul>
         </div>
       </div>

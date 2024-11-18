@@ -30,7 +30,7 @@ import Companies from "./pages/company";
 import CompanyDetail from "./pages/company-detail";
 import Job from "./pages/job";
 import JobApplied from "./pages/job-applied";
-
+import FavoriteJobs from "./pages/favorite-jobs";
 import JobDetail from "./pages/job-detail";
 function App() {
   return (
@@ -48,7 +48,7 @@ function App() {
         ></Route>
         <Route path="/job-applied" element={<JobApplied />}></Route>
         <Route path="/jobs/:jobId" element={<JobDetail />}></Route>
-
+        <Route path="/favorite-jobs" element={<FavoriteJobs />} />
         <Route path="/recruiter/login" element={<LoginRecruiter />} />
         <Route path="/recruiter/signup" element={<SignupRecruiter />} />
         <Route path="/recruiter" element={<RecruiterLayout />}>

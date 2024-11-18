@@ -22,7 +22,7 @@ router.post(
   jobController.applyJob
 );
 
-router.get("/my-favorites", verifyToken, jobController.getFavoriteJobs);
+router.get("/user/my-favorites", verifyToken, jobController.getFavoriteJobs);
 
 router.put("/:job_id", verifyToken, jobController.updateJob);
 

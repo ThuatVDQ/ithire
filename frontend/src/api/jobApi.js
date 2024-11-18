@@ -132,14 +132,20 @@ const jobApi = {
   // Lấy công việc yêu thích
   getFavoriteJobs: async (params = {}) => {
     try {
+      // Lấy token từ localStorage
+      const token = localStorage.getItem("token");
+
+      // Cấu hình headers
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const response = await axios.get(`${BASE_URL}/user/my-favorites`, {
         params,
+        headers,
       });
       return response.data;
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Failed to fetch favorite jobs.";
-      toast.error(errorMessage);
+      console.log(errorMessage);
       throw error;
     }
   },
