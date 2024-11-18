@@ -32,6 +32,7 @@ import Job from "./pages/job";
 import JobApplied from "./pages/job-applied";
 import FavoriteJobs from "./pages/favorite-jobs";
 import JobDetail from "./pages/job-detail";
+import Profile from "./pages/profile";
 function App() {
   return (
     <>
@@ -42,6 +43,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/jobs" element={<Job />} />
         <Route path="/companies" element={<Companies />}></Route>
+        <Route path="/profile" element={<Profile />}></Route>
         <Route
           path="/company-detail/:companyId"
           element={<CompanyDetail />}

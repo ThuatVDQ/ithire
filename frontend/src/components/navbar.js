@@ -113,17 +113,7 @@ export default function Navbar({ navClass, navLight }) {
         <div
           className={`dropdown-menu dd-menu dropdown-menu-end bg-white rounded shadow border-0 mt-3 show`}
         >
-          <Link
-            to="/candidate-profile"
-            className="dropdown-item fw-medium fs-6"
-          >
-            <FiUser className="fea icon-sm me-2 align-middle" />
-            Profile
-          </Link>
-          <Link
-            to="/candidate-profile-setting"
-            className="dropdown-item fw-medium fs-6"
-          >
+          <Link to="/profile" className="dropdown-item fw-medium fs-6">
             <FiSettings className="fea icon-sm me-2 align-middle" />
             Settings
           </Link>
@@ -148,11 +138,9 @@ export default function Navbar({ navClass, navLight }) {
     <header id="topnav" className={`${scroll ? "nav-sticky" : ""} ${navClass}`}>
       <div className="container">
         <Link className="logo" to="/">
-          <span className="logo-light-mode">
-            <span className="l-dark">ITHIRE</span>
-            <span className="l-light">ITHIRE</span>
+          <span className={`${navLight ? "text-white" : "text-black"}`}>
+            ITHIRE
           </span>
-          <span className="logo-dark-mode">ITHIRE</span>
         </Link>
         <div className="menu-extras">
           <div className="menu-item">
@@ -182,7 +170,11 @@ export default function Navbar({ navClass, navLight }) {
           </li>
         </ul>
         <div id="navigation">
-          <ul className="navigation-menu nav-right nav-light">
+          <ul
+            className={`navigation-menu nav-right ${
+              navLight ? "nav-light" : "nav-dark"
+            }`}
+          >
             <li className={manu === "home" ? "active" : ""}>
               <Link to="/home">Home</Link>
             </li>

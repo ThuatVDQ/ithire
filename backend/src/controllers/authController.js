@@ -47,7 +47,9 @@ exports.signup = async (req, res) => {
 
     await user.save();
     await sendOTPForAction(email, "signup");
-    res.status(201).json({ message: "User signed up successfully. OTP sent to email."});
+    res
+      .status(201)
+      .json({ message: "User signed up successfully. OTP sent to email." });
   } catch (error) {
     console.error("Error signing up user:", error);
     res.status(500).json({ message: "Server error" });
@@ -60,7 +62,11 @@ exports.verifyOTP = async (req, res) => {
 
     // Xác thực OTP từ Redis
     const verificationMessage = await verifyOTP(email, otp);
-    await User.findOneAndUpdate({ email }, { isOTPVerified: true }, { new: true });
+    await User.findOneAndUpdate(
+      { email },
+      { isOTPVerified: true },
+      { new: true }
+    );
 
     res.status(200).json({ message: verificationMessage });
   } catch (error) {
@@ -82,7 +88,7 @@ exports.resendOTP = async (req, res) => {
     // Gửi lại OTP ngay cả khi OTP chưa hết hạn
     await sendOTPForAction(email, "resend");
 
-    res.status(200).json({ message: "OTP resent successfully"});
+    res.status(200).json({ message: "OTP resent successfully" });
   } catch (error) {
     console.error("Error resending OTP:", error);
     res.status(500).json({ message: "Server error" });
@@ -100,9 +106,14 @@ exports.sendResetPasswordOTP = async (req, res) => {
     }
 
     // Gửi OTP để reset mật khẩu
-    await sendOTPForAction(email, 'reset password');
+    await sendOTPForAction(email, "reset password");
 
-    res.status(200).json({ message: "OTP sent to email for password reset. Please check your inbox." });
+    res
+      .status(200)
+      .json({
+        message:
+          "OTP sent to email for password reset. Please check your inbox.",
+      });
   } catch (error) {
     console.error("Error sending reset password OTP:", error);
     res.status(500).json({ message: "Server error" });
@@ -122,7 +133,9 @@ exports.resetPassword = async (req, res) => {
     // Kiểm tra xem OTP đã được xác thực chưa
     const user = await User.findOne({ email });
     if (!user || !user.isOTPVerified) {
-      return res.status(400).json({ message: "OTP is not verified or has expired" });
+      return res
+        .status(400)
+        .json({ message: "OTP is not verified or has expired" });
     }
 
     // Mã hóa mật khẩu mới
@@ -131,7 +144,12 @@ exports.resetPassword = async (req, res) => {
     // Cập nhật mật khẩu mới vào cơ sở dữ liệu
     await User.findOneAndUpdate(
       { email },
-      { password: hashedPassword, otp: null, otpExpire: null, isOTPVerified: true },
+      {
+        password: hashedPassword,
+        otp: null,
+        otpExpire: null,
+        isOTPVerified: true,
+      },
       { new: true }
     );
 
@@ -141,7 +159,6 @@ exports.resetPassword = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
 
 exports.login = async (req, res) => {
   try {
@@ -153,7 +170,11 @@ exports.login = async (req, res) => {
     }
 
     if (!user.isOTPVerified) {
-      return res.status(403).json({ error: "OTP not verified. Please verify your OTP before logging in." });
+      return res
+        .status(403)
+        .json({
+          error: "OTP not verified. Please verify your OTP before logging in.",
+        });
     }
 
     // Kiểm tra role_id nếu có trong yêu cầu
@@ -180,7 +201,7 @@ exports.login = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const user_email = req.user.email; 
+    const user_email = req.user.email;
     const { full_name, gender, introduction, phone } = req.body;
 
     // Tìm người dùng cần cập nhật bằng email từ token
@@ -228,7 +249,12 @@ exports.uploadAvatar = async (req, res) => {
     user.updatedAt = Date.now();
     await user.save();
 
-    res.status(200).json({ message: "Avatar uploaded successfully", avatar_url: user.avatar_url });
+    res
+      .status(200)
+      .json({
+        message: "Avatar uploaded successfully",
+        avatar_url: user.avatar_url,
+      });
   } catch (error) {
     console.error("Error uploading avatar:", error);
     res.status(500).json({ message: "Server error" });
@@ -265,7 +291,7 @@ exports.addFavoriteJob = async (req, res) => {
     job.like_number += 1;
     await job.save();
 
-    res.status(201).json({ message: "Job added to favorites"});
+    res.status(201).json({ message: "Job added to favorites" });
   } catch (error) {
     console.error("Error adding favorite job:", error);
     res.status(500).json({ message: "Server error" });
@@ -289,7 +315,9 @@ exports.removeFavoriteJob = async (req, res) => {
     }
 
     // Xóa job_id khỏi danh sách yêu thích
-    user.favorite_jobs = user.favorite_jobs.filter(id => id !== parseInt(job_id));
+    user.favorite_jobs = user.favorite_jobs.filter(
+      (id) => id !== parseInt(job_id)
+    );
     await user.save();
 
     // Giảm `like_number` trong `Job`
@@ -299,7 +327,12 @@ exports.removeFavoriteJob = async (req, res) => {
       await job.save();
     }
 
-    res.status(200).json({ message: "Job removed from favorites", favorite_jobs: user.favorite_jobs });
+    res
+      .status(200)
+      .json({
+        message: "Job removed from favorites",
+        favorite_jobs: user.favorite_jobs,
+      });
   } catch (error) {
     console.error("Error removing favorite job:", error);
     res.status(500).json({ message: "Server error" });
@@ -327,64 +360,7 @@ exports.getUserInfo = async (req, res) => {
         gender: user.gender,
         introduction: user.introduction,
         avatar_url: user.avatar_url,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching user info:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-exports.getUserInfo = async (req, res) => {
-  try {
-    // Lấy email từ token (req.user được thiết lập từ middleware verifyToken)
-    const userEmail = req.user.email;
-
-    // Tìm người dùng theo email
-    const user = await User.findOne({ email: userEmail });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Trả về thông tin người dùng dưới dạng một đối tượng
-    res.status(200).json({
-      user: {
-        user_id: user.user_id,
-        email: user.email,
-        full_name: user.full_name,
-        phone: user.phone,
-        gender: user.gender,
-        introduction: user.introduction,
-        avatar_url: user.avatar_url,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching user info:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-exports.getUserInfo = async (req, res) => {
-  try {
-    // Lấy email từ token (req.user được thiết lập từ middleware verifyToken)
-    const userEmail = req.user.email;
-
-    // Tìm người dùng theo email
-    const user = await User.findOne({ email: userEmail });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Trả về thông tin người dùng dưới dạng một đối tượng
-    res.status(200).json({
-      user: {
-        user_id: user.user_id,
-        email: user.email,
-        full_name: user.full_name,
-        phone: user.phone,
-        gender: user.gender,
-        introduction: user.introduction,
-        avatar_url: user.avatar_url,
+        status: user.status
       },
     });
   } catch (error) {
@@ -396,7 +372,7 @@ exports.getUserInfo = async (req, res) => {
 exports.changePassword = async (req, res) => {
   try {
     const userEmail = req.user.email; // Lấy email từ `req.user` đã được thiết lập trong middleware `verifyToken`
-    const { currentPassword, newPassword, retypePassword } = req.body;
+    const { oldPassword, newPassword, confirmPassword } = req.body;
 
     // Tìm người dùng theo email
     const user = await User.findOne({ email: userEmail });
@@ -405,13 +381,13 @@ exports.changePassword = async (req, res) => {
     }
 
     // Kiểm tra mật khẩu hiện tại
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
 
     // Kiểm tra xem `newPassword` có trùng với `retypePassword` không
-    if (newPassword !== retypePassword) {
+    if (newPassword !== confirmPassword) {
       return res.status(400).json({ message: "New passwords do not match" });
     }
 
@@ -435,8 +411,13 @@ exports.dashboard = async (req, res) => {
 
     // Tìm user và xác định nếu user có phải là admin
     const user = await User.findOne({ email: userEmail });
-    if (!user || user.role_id !== 1) {  // role_id = 1 cho admin
-      return res.status(403).json({ message: "Access denied. Only admins can access this dashboard." });
+    if (!user || user.role_id !== 1) {
+      // role_id = 1 cho admin
+      return res
+        .status(403)
+        .json({
+          message: "Access denied. Only admins can access this dashboard.",
+        });
     }
 
     // Thống kê tổng số công việc
@@ -495,8 +476,7 @@ exports.dashboard = async (req, res) => {
 
 exports.getAllUsers = async (req, res) => {
   try {
-
-    const  role_id  = parseInt(req.query.role_id) || null;
+    const role_id = parseInt(req.query.role_id) || null;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -505,8 +485,13 @@ exports.getAllUsers = async (req, res) => {
 
     // Tìm user và xác định nếu user có phải là admin
     const user = await User.findOne({ email: userEmail });
-    if (!user || user.role_id !== 1) {  // role_id = 1 cho admin
-      return res.status(403).json({ message: "Access denied. Only admins can access this dashboard." });
+    if (!user || user.role_id !== 1) {
+      // role_id = 1 cho admin
+      return res
+        .status(403)
+        .json({
+          message: "Access denied. Only admins can access this dashboard.",
+        });
     }
 
     const query = { role_id: { $ne: 1 } };
@@ -514,13 +499,12 @@ exports.getAllUsers = async (req, res) => {
       query.role_id = role_id;
     }
 
-
     // Lấy tất cả người dùng (không bao gồm admin)
     //filter theo role nua
     const users = await User.find(query)
-    .sort({ createdAt: -1 }) // Sắp xếp theo thời gian tạo mới nhất
-    .skip(skip)
-    .limit(limit)
+      .sort({ createdAt: -1 }) // Sắp xếp theo thời gian tạo mới nhất
+      .skip(skip)
+      .limit(limit);
     const totalUsers = await User.countDocuments(query);
     const totalPages = Math.ceil(totalUsers / limit);
 
@@ -533,11 +517,11 @@ exports.getAllUsers = async (req, res) => {
         pageSize: limit,
       },
     });
-  } catch (error) { 
+  } catch (error) {
     console.error("Error fetching all users:", error);
     res.status(500).json({ message: "Server error" });
   }
-}
+};
 
 exports.blockUser = async (req, res) => {
   try {
@@ -547,17 +531,20 @@ exports.blockUser = async (req, res) => {
     const userEmail = req.user.email;
 
     // Tìm user và xác định nếu user có phải là admin
-    const user = await User.findOne({ email : userEmail });
-    if (!user || user.role_id !== 1) {  // role_id = 1 cho admin
-      return res.status(403).json({ message: "Access denied. Only admins can block users." });
+    const user = await User.findOne({ email: userEmail });
+    if (!user || user.role_id !== 1) {
+      // role_id = 1 cho admin
+      return res
+        .status(403)
+        .json({ message: "Access denied. Only admins can block users." });
     }
 
     // Tìm người dùng cần block
     console.log(user_id);
-    const userBlock = await User.findOne({ user_id : user_id });
+    const userBlock = await User.findOne({ user_id: user_id });
     if (!userBlock) {
       return res.status(404).json({ message: "User not found" });
-    } 
+    }
 
     userBlock.status = status;
     userBlock.updatedAt = Date.now();
@@ -569,5 +556,4 @@ exports.blockUser = async (req, res) => {
     console.error("Error blocking user:", error);
     res.status(500).json({ message: "Server error" });
   }
-}
-
+};
