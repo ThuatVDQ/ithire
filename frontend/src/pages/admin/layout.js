@@ -87,6 +87,9 @@ export default function RecruiterLayout() {
             <Link
               to="/admin/login"
               className="nav-link text-danger d-flex align-items-center mb-3"
+              onClick={() => {
+                localStorage.removeItem("token"); 
+              }}
             >
               <FaSignOutAlt className="me-2" />
               Logout

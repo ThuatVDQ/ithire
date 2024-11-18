@@ -176,7 +176,7 @@ exports.getJobsByCompany = async (req, res) => {
     // Bộ lọc tìm kiếm
     const query = {
       company_id: company.company_id,
-      title: { $regex: search, $options: "i" }, // Tìm kiếm theo tiêu đề (không phân biệt hoa/thường)
+      title: { $regex: search, $options: "i" }
     };
 
     // Sử dụng aggregate để kết hợp Job với JobApplication
@@ -975,6 +975,30 @@ exports.updateJob = async (req, res) => {
     res.status(200).json({ message: "Job updated successfully", job });
   } catch (error) {
     console.error("Error updating job:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
+exports.closeJob = async (req, res) => {
+  try {
+    const { job_id } = req.params;
+
+    const role_id = req.user.role_id;
+    if (role_id !== 2 && role_id !== 1) {
+      return res.status(403).json({ message: "Access denied. Only recruiters or admins can close jobs" });
+    }
+
+    const job = await Job.findOne({ job_id });
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    job.status = "CLOSED";
+    await job.save();
+    res.status(200).json({ message: "Job closed successfully", job });
+  }
+  catch (error) {
+    console.error("Error closing job:", error);
     res.status(500).json({ message: "Server error" });
   }
 }

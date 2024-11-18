@@ -20,4 +20,6 @@ router.post("/jobs/approve/:job_id", verifyToken, jobController.approveJob);
 
 router.post("/jobs/reject/:job_id", verifyToken, jobController.rejectJob);
 
+router.put("/jobs/close/:job_id", verifyToken, jobController.closeJob);
+
 module.exports = router;

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import { Table, Button, Pagination, Form, Spinner } from "react-bootstrap";
-import { FaCheck, FaTimes, FaSearch, FaBan } from "react-icons/fa";
+import { FaCheck, FaTimes, FaSearch } from "react-icons/fa";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -90,7 +91,7 @@ export default function ManageJobs() {
   const handleClose = async (jobId) => {
     try {
       await axios.put(
-        `http://localhost:8090/api/admin/jobs/${jobId}/close`,
+        `http://localhost:8090/api/admin/jobs/close/${jobId}`,
         {},
         {
           headers: {
@@ -98,11 +99,10 @@ export default function ManageJobs() {
           },
         }
       );
-      alert("Job closed successfully!");
       fetchJobs();
     } catch (error) {
       console.error("Error closing job:", error);
-      alert("Failed to close the job.");
+      toast.error(error.response.data.message || "Failed to close the job.");
     }
   };
 
@@ -192,65 +192,81 @@ export default function ManageJobs() {
               </tr>
             </thead>
             <tbody>
-              {jobs.length > 0 ? (
-                jobs.map((job, index) => (
-                  <tr key={job._id}>
-                    <td>
-                      {(pagination.currentPage - 1) * pagination.pageSize +
-                        index +
-                        1}
-                    </td>
-                    <td>{job.title}</td>
-                    <td>{job.company?.name || "N/A"}</td>
-                    <td>
-                      {job.address?.length > 0
-                        ? job.address.map((addr) => addr.city).join(", ")
-                        : "N/A"}
-                    </td>
-                    <td>{job.type}</td>
-                    <td>{job.status}</td>
-                    <td>
-  <div className="d-flex gap-2">
-    {job.status === "PENDING" ? (
-      <>
-        <Button
-          variant="success"
-          className="btn-sm" // Thêm class này
-          onClick={() => handleApprove(job.job_id)}
-        >
-          <FaCheck /> Approve
-        </Button>
-        <Button
-          variant="danger"
-          className="btn-sm" // Thêm class này
-          onClick={() => handleReject(job.job_id)}
-        >
-          <FaTimes /> Reject
-        </Button>
-      </>
-    ) : job.status === "OPEN" ? (
-      <Button
-        variant="warning"
-        className="btn-sm" // Thêm class này
-        onClick={() => handleClose(job.job_id)}
-      >
-        Close
-      </Button>
-    ) : null}
-  </div>
+  {jobs.length > 0 ? (
+    jobs.map((job, index) => (
+      <tr key={job._id}>
+        <td>{(pagination.currentPage - 1) * pagination.pageSize + index + 1}</td>
+        <td>
+  <Link to={`/admin/jobs/${job.job_id}`} className="text-decoration-none text-primary">
+    {job.title}
+  </Link>
 </td>
+        <td>{job.company?.name || "N/A"}</td>
+        <td>
+          {job.address?.length > 0
+            ? job.address.map((addr) => addr.city).join(", ")
+            : "N/A"}
+        </td>
+        <td>{job.type}</td>
+        <td>
+          <span
+            className={`badge ${
+              job.status === "OPEN"
+                ? "bg-success"
+                : job.status === "CLOSED"
+                ? "bg-danger"
+                : job.status === "PENDING"
+                ? "bg-warning"
+                : job.status === "REJECTED"
+                ? "bg-secondary"
+                : ""
+            }`}
+          >
+            {job.status}
+          </span>
+        </td>
+        <td>
+          <div className="d-flex justify-content-center gap-2">
+            {job.status === "PENDING" ? (
+              <>
+                <Button
+                  variant="success"
+                  className="btn-sm"
+                  onClick={() => handleApprove(job.job_id)}
+                >
+                  <FaCheck /> Approve
+                </Button>
+                <Button
+                  variant="danger"
+                  className="btn-sm"
+                  onClick={() => handleReject(job.job_id)}
+                >
+                  <FaTimes /> Reject
+                </Button>
+              </>
+            ) : job.status === "OPEN" ? (
+              <Button
+                variant="warning"
+                className="btn-sm"
+                onClick={() => handleClose(job.job_id)}
+              >
+                Close
+              </Button>
+            ) : null}
+          </div>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="7" className="text-center">
+        No jobs found.
+      </td>
+    </tr>
+  )}
+</tbody>
 
 
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="text-center">
-                    No jobs found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
           </Table>
 
           {/* Pagination */}

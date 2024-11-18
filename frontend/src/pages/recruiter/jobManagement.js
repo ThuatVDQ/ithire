@@ -83,6 +83,24 @@ export default function JobManagement() {
     }
   };
   
+  const handleClose = async (jobId) => {
+    console.log("Closing job with ID:", jobId);
+    try {
+      await axios.put(
+        `http://localhost:8090/api/admin/jobs/close/${jobId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      fetchJobs();
+    } catch (error) {
+      console.error("Error closing job:", error);
+      toast.error(error.response.data.message || "Failed to close the job.");
+    }
+  }
 
   return (
     <div>
@@ -131,22 +149,35 @@ export default function JobManagement() {
 
                   <td>{job.applications}</td>
                   <td>
-                    <span
-                      className={`badge ${
-                        job.status === "Active" ? "bg-success" : "bg-secondary"
-                      }`}
-                    >
-                      {job.status}
-                    </span>
+                  <span
+            className={`badge ${
+              job.status === "OPEN"
+                ? "bg-success"
+                : job.status === "CLOSED"
+                ? "bg-secondary"
+                : job.status === "PENDING"
+                ? "bg-warning"
+                : job.status === "REJECTED"
+                ? "bg-secondary"
+                : ""
+            }`}
+          >
+            {job.status}
+          </span>
                   </td>
                   <td className="d-flex justify-content-center gap-2">
                     <Link
-                      to={`/recruiter/jobs/edit-job/${job.id}`}
+                      to={`/recruiter/jobs/edit/${job.id}`}
                       className="btn btn-warning btn-sm"
                     >
                       Edit
                     </Link>
-                    <button className="btn btn-danger btn-sm">Delete</button>
+                    <button
+    className="btn btn-secondary btn-sm"
+    onClick={() => handleClose(job.id)} 
+  >
+    Close
+  </button>
                   </td>
                   <td className="text-center">
                     <button

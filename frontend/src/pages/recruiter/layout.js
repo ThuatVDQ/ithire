@@ -92,12 +92,16 @@ export default function RecruiterLayout() {
               Account Management
             </Link>
             <Link
-              to="/recruiter/login"
-              className="nav-link text-danger d-flex align-items-center mb-3"
-            >
-              <FaSignOutAlt className="me-2" />
-              Logout
-            </Link>
+  to="/recruiter/login"
+  className="nav-link text-danger d-flex align-items-center mb-3"
+  onClick={() => {
+    localStorage.removeItem("token"); 
+  }}
+>
+  <FaSignOutAlt className="me-2" />
+  Logout
+</Link>
+
           </nav>
         </aside>
       ) : (
