@@ -59,7 +59,7 @@ export default function Job() {
       const token = localStorage.getItem("token");
       const response = await jobApi.searchJobs(
         {
-          page: 1, 
+          page: 1,
           limit: 6,
           keyword,
           location,
@@ -135,7 +135,8 @@ export default function Job() {
             <div className="col-12 mt-4">
               <div className="features-absolute">
                 <div className="d-md-flex justify-content-between align-items-center bg-white shadow rounded p-4">
-                  <FormSelect onSearch={handleSearch} /> {/* Truyền hàm onSearch */}
+                  <FormSelect onSearch={handleSearch} />{" "}
+                  {/* Truyền hàm onSearch */}
                 </div>
               </div>
             </div>
@@ -173,7 +174,7 @@ export default function Job() {
                       </li>
                       <li className="list-inline-item">
                         <Link
-                          to={`/${item.job_id}`}
+                          to={`/jobs/${item.job_id}`}
                           className="btn btn-icon btn-sm btn-soft-primary"
                         >
                           <FiArrowUpRight className="icons" />
@@ -183,7 +184,10 @@ export default function Job() {
                   </div>
 
                   <div className="mt-2">
-                    <Link to={`/${item.job_id}`} className="text-dark title h5">
+                    <Link
+                      to={`/jobs/${item.job_id}`}
+                      className="text-dark title h5"
+                    >
                       {item.title} - Up to {item.salary_end} {item.currency}
                     </Link>
                     <Link

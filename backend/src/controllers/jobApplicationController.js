@@ -2,7 +2,7 @@ const JobApplication = require("../models/JobApplication");
 const CV = require("../models/CV");
 const User = require("../models/User");
 const Job = require("../models/Job");
-const Notification = require("../controllers/notificationController"); 
+const Notification = require("../controllers/notificationController");
 const path = require("path");
 const fs = require("fs");
 exports.downloadCV = async (req, res) => {
@@ -54,7 +54,7 @@ exports.downloadCV = async (req, res) => {
 
 exports.getJobApplicationsByJobId = async (req, res) => {
   try {
-    const userRoleId = req.user.role_id; 
+    const userRoleId = req.user.role_id;
     const jobId = Number(req.params.job_id); // Đảm bảo job_id là số
     const page = parseInt(req.query.page, 10) || 1; // Trang hiện tại, mặc định là 1
     const limit = parseInt(req.query.limit, 10) || 10; // Số bản ghi mỗi trang, mặc định là 10
@@ -62,7 +62,11 @@ exports.getJobApplicationsByJobId = async (req, res) => {
 
     // Xác minh quyền truy cập
     if (userRoleId !== 2) {
-      return res.status(403).json({ message: "Access denied. Only recruiters can access this resource." });
+      return res
+        .status(403)
+        .json({
+          message: "Access denied. Only recruiters can access this resource.",
+        });
     }
 
     // Lấy thông tin công việc (để lấy `title`)
@@ -76,10 +80,12 @@ exports.getJobApplicationsByJobId = async (req, res) => {
       .skip(skip)
       .limit(limit)
       .populate({ path: "user", select: "full_name email phone" })
-      .populate({ path: "cv", select: "cv_url" }); 
+      .populate({ path: "cv", select: "cv_url" });
 
     // Đếm tổng số ứng dụng
-    const totalApplications = await JobApplication.countDocuments({ job_id: jobId });
+    const totalApplications = await JobApplication.countDocuments({
+      job_id: jobId,
+    });
     const totalPages = Math.ceil(totalApplications / limit);
 
     // Trả về kết quả
@@ -88,11 +94,11 @@ exports.getJobApplicationsByJobId = async (req, res) => {
         job_id: jobId,
         title: job.title, // Thêm tiêu đề công việc
       },
-      applications: applications.map(app => ({
+      applications: applications.map((app) => ({
         id: app.job_application_id,
         cv_id: app.cv_id, // CV ID
         user: app.user,
-        cv_url: app.cv.cv_url, 
+        cv_url: app.cv.cv_url,
         status: app.status,
         createdAt: app.createdAt,
       })),
@@ -111,17 +117,24 @@ exports.getJobApplicationsByJobId = async (req, res) => {
 
 exports.changeApplicationStatus = async (req, res) => {
   try {
-    const userRoleId = req.user.role_id; 
+    const userRoleId = req.user.role_id;
     const application_id = Number(req.params.job_application_id);
     const { newStatus } = req.body;
 
     // Check if the user is a recruiter
     if (userRoleId !== 2) {
-      return res.status(403).json({ message: "Access denied. Only recruiters can change the application status." });
+      return res
+        .status(403)
+        .json({
+          message:
+            "Access denied. Only recruiters can change the application status.",
+        });
     }
 
     // Get application details
-    const application = await JobApplication.findOne({ job_application_id: application_id });
+    const application = await JobApplication.findOne({
+      job_application_id: application_id,
+    });
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
@@ -129,7 +142,10 @@ exports.changeApplicationStatus = async (req, res) => {
     // Check for valid status transitions
     if (application.status === "IN_PROGRESS" && newStatus === "SEEN") {
       application.status = "SEEN";
-    } else if (application.status === "SEEN" && (newStatus === "ACCEPTED" || newStatus === "REJECTED")) {
+    } else if (
+      application.status === "SEEN" &&
+      (newStatus === "ACCEPTED" || newStatus === "REJECTED")
+    ) {
       application.status = newStatus;
     } else {
       return res.status(400).json({ message: "Invalid status transition" });
@@ -147,9 +163,41 @@ exports.changeApplicationStatus = async (req, res) => {
       }
     }
 
-    res.status(200).json({ message: "Application status updated successfully" });
+    res
+      .status(200)
+      .json({ message: "Application status updated successfully" });
   } catch (error) {
     console.error("Error changing application status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.checkJobApplication = async (req, res) => {
+  try {
+    const { job_id } = req.params;
+    const email = req.user.email;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const application = await JobApplication.findOne({
+      job_id,
+      user_id: user.user_id,
+    });
+
+    if (application) {
+      return res.status(200).json({
+        applied: true,
+        applicationId: application._id,
+        status: application.status,
+      });
+    }
+
+    return res.status(200).json({ applied: false });
+  } catch (error) {
+    console.error("Error checking job application:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

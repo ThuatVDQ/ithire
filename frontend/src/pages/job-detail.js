@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { toast } from "react-toastify"; // Import toast for error notifications
+import { toast } from "react-toastify";
 import jobApi from "../api/jobApi"; // Import your jobApi
+import jobApplicationApi from "../api/jobApplicationApi"; // Import the API for job applications
 
 import logo1 from "../assets/images/company/lenovo-logo.png";
 import bg1 from "../assets/images/hero/bg4.jpg";
@@ -27,14 +28,21 @@ export default function JobDetail() {
   const { jobId } = useParams();
   const [jobData, setJobData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cvFile, setCvFile] = useState(null);
+  const [applying, setApplying] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
 
   useEffect(() => {
     const fetchJobDetail = async () => {
       try {
-        const data = await jobApi.getJobDetail(jobId); // Use jobApi.getJobDetail here
+        const data = await jobApi.getJobDetail(jobId);
         setJobData(data);
+
+        const applicationStatus = await jobApplicationApi.checkJobApplication(
+          jobId
+        );
+        setHasApplied(applicationStatus.applied);
       } catch (error) {
-        // Handle error if the API call fails
         console.error("Error fetching job details:", error);
         toast.error("Failed to fetch job details.");
       } finally {
@@ -44,6 +52,32 @@ export default function JobDetail() {
 
     fetchJobDetail();
   }, [jobId]);
+
+  const handleFileChange = (event) => {
+    setCvFile(event.target.files[0]);
+  };
+
+  const handleApplyJob = async () => {
+    if (!cvFile) {
+      toast.error("Please upload your CV before applying.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("cv", cvFile);
+
+    setApplying(true);
+
+    try {
+      await jobApi.applyJob(jobId, formData);
+      toast.success("Job application submitted successfully!");
+      setHasApplied(true); // Update the state to reflect the application
+    } catch (error) {
+      toast.error("Failed to apply for the job.");
+    } finally {
+      setApplying(false);
+    }
+  };
 
   if (loading) {
     return <div>Loading job details...</div>;
@@ -98,11 +132,30 @@ export default function JobDetail() {
 
               <h5 className="mt-4">Benefit:</h5>
               <p className="text-muted">{job?.benefit || "N/A"}</p>
-
               <div className="mt-4">
-                <Link to="/job-apply" className="btn btn-outline-primary">
-                  Apply Now <i className="mdi mdi-send"></i>
-                </Link>
+                <input
+                  className="form-control"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileChange}
+                  disabled={applying}
+                />
+              </div>
+
+              {/* Apply Button */}
+              <div className="mt-4">
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={handleApplyJob}
+                  disabled={applying}
+                >
+                  {applying
+                    ? "Submitting..."
+                    : hasApplied
+                    ? "Change CV"
+                    : "Apply Now"}
+                  <i className="mdi mdi-send"></i>
+                </button>
               </div>
             </div>
 
