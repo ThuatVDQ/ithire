@@ -6,6 +6,7 @@ import "./assets/css/materialdesignicons.min.css";
 import Home from "./pages/home";
 import Login from "./pages/login/login";
 import Signup from "./pages/signup/signup";
+
 import LoginRecruiter from "./pages/login/loginAsEn";
 import SignupRecruiter from "./pages/signup/signupAsEn";
 import RecruiterLayout from "./pages/recruiter/layout";
@@ -16,6 +17,11 @@ import CreateJob from "./pages/recruiter/createJob";
 import JobCandidates from "./pages/recruiter/jobCandidates";
 import AccountManagement from "./pages/recruiter/accountManagement";
 import EditJobPage from "./pages/recruiter/editJob";
+
+import LoginAdmin from "./pages/login/loginAsAdmin";
+import AdminLayout from "./pages/admin/layout";
+import DashboardAdmin from "./pages/admin/dashboard";
+import JobManagementAdmin from "./pages/admin/jobManagement";
 
 import Companies from "./pages/company";
 import CompanyDetail from "./pages/company-detail";
@@ -47,6 +53,14 @@ function App() {
           <Route path="jobs/edit-job/:job_id" element={<EditJobPage />} />
           <Route path="jobs/:jobId/candidates" element={<JobCandidates />} />
           <Route path="update-info" element={<AccountManagement />} />
+        </Route>
+
+        <Route path="/admin/login" element={<LoginAdmin />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="dashboard" element={<DashboardAdmin />} />
+          <Route path="jobs" element={<JobManagementAdmin />} />
+          <Route path="users" element={<ProfileManagement />} />
+          <Route path="jobs/:jobId" element={<JobCandidates />} /> 
         </Route>
       </Routes>
     </>
