@@ -24,4 +24,6 @@ router.post(
 
 router.get("/my-favorites", verifyToken, jobController.getFavoriteJobs);
 
+router.put("/:job_id", verifyToken, jobController.updateJob);
+
 module.exports = router;

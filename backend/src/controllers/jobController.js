@@ -125,6 +125,8 @@ exports.getJobDetail = async (req, res) => {
     // Tìm Company liên kết với Job
     const company = await Company.findOne({ company_id: job.company_id });
 
+    const categories = await Category.find({ category_id: { $in: job.category_ids } });
+
     // Tìm các Skill liên kết với Job
     const skills = await Skill.find({ skill_id: { $in: job.skills } });
 
@@ -139,6 +141,7 @@ exports.getJobDetail = async (req, res) => {
       company,
       skills,
       addresses,
+      categories
     });
   } catch (error) {
     console.error("Error fetching job detail:", error);
@@ -874,3 +877,105 @@ exports.searchJobsForAdmin = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.updateJob = async (req, res) => {
+  try {
+    const { job_id } = req.params;
+    const {
+      title,
+      description,
+      slots,
+      type,
+      experience,
+      position,
+      level,
+      currency,
+      salary_start,
+      salary_end,
+      requirement,
+      benefit,
+      deadline,
+      categories,
+      skills,
+      addresses,
+    } = req.body;
+
+    const role_id = req.user.role_id; 
+    if (role_id !== 2) {
+      return res.status(403).json({ message: "Access denied. Only recruiters can update jobs" });
+    }
+
+    const job = await Job.findOne({ job_id });
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    console.log(categories);
+    const category_ids = [];
+    for (const cat of categories) {
+      let name;
+      if (cat.name) {
+         name = cat.name;
+      } else {
+         name = cat;
+      }
+      let category = await Category.findOne({ name });
+      if (!category) {
+        category = new Category({ name });
+        await category.save();
+      }
+      category_ids.push(category.category_id);
+    }
+
+    const skill_ids = [];
+    for (const skillName of skills) {
+      let name;
+      if (skillName.name) {
+          name = skillName.name;
+        }
+        else {
+          name = skillName;
+        }
+      let skill = await Skill.findOne({ name: name });
+      if (!skill) {
+        skill = new Skill({ name: skillName });
+        await skill.save();
+      }
+      skill_ids.push(skill.skill_id);
+    }
+
+    const address_ids = [];
+    for (const addressData of addresses) {
+      const { city, country, district, street } = addressData;
+      let address = await Address.findOne({ city, country, district, street });
+      if (!address) {
+        address = new Address({ city, country, district, street });
+        await address.save();
+      }
+      address_ids.push(address.address_id);
+    }
+
+    job.title = title;
+    job.description = description;
+    job.slots = slots;
+    job.type = type;
+    job.experience = experience;
+    job.position = position;
+    job.level = level;
+    job.currency = currency;
+    job.salary_start = salary_start;
+    job.salary_end = salary_end;
+    job.requirement = requirement;
+    job.benefit = benefit;
+    job.deadline = deadline;
+    job.category_ids = category_ids;
+    job.skills = skill_ids;
+    job.addresses = address_ids;
+
+    await job.save();
+    res.status(200).json({ message: "Job updated successfully", job });
+  } catch (error) {
+    console.error("Error updating job:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
