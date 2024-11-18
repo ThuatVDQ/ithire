@@ -83,19 +83,20 @@ const jobApi = {
   // Ứng tuyển công việc
   applyJob: async (jobId, formData) => {
     try {
+      const token = localStorage.getItem("token");
       const response = await axios.post(
         `${BASE_URL}/apply/${jobId}`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-      toast.success("Job application submitted successfully!");
       return response.data;
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to apply for job.";
-      toast.error(errorMessage);
+      console.log(error);
       throw error;
     }
   },

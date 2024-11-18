@@ -10,13 +10,20 @@ router.get(
 );
 
 router.get(
-  "/:job_id", verifyToken,
+  "/:job_id",
+  verifyToken,
   jobApplicationController.getJobApplicationsByJobId
 );
 
 router.put(
-  "/change-status/:job_application_id/", verifyToken,
+  "/change-status/:job_application_id/",
+  verifyToken,
   jobApplicationController.changeApplicationStatus
 );
 
+router.get(
+  "/:job_id/check-application",
+  verifyToken,
+  jobApplicationController.checkJobApplication
+);
 module.exports = router;
