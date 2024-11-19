@@ -91,7 +91,7 @@ export default function JobDetail() {
 
   return (
     <>
-      <Navbar navClass="defaultscroll sticky" />
+      <Navbar navClass="defaultscroll sticky" navLight={true} />
       <section
         className="bg-half-170 d-table w-100"
         style={{ backgroundImage: `url(${bg1})`, backgroundPosition: "center" }}

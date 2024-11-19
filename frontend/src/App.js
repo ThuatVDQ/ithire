@@ -30,8 +30,9 @@ import Companies from "./pages/company";
 import CompanyDetail from "./pages/company-detail";
 import Job from "./pages/job";
 import JobApplied from "./pages/job-applied";
-
+import FavoriteJobs from "./pages/favorite-jobs";
 import JobDetail from "./pages/job-detail";
+import Profile from "./pages/profile";
 function App() {
   return (
     <>
@@ -42,13 +43,14 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/jobs" element={<Job />} />
         <Route path="/companies" element={<Companies />}></Route>
+        <Route path="/profile" element={<Profile />}></Route>
         <Route
           path="/company-detail/:companyId"
           element={<CompanyDetail />}
         ></Route>
         <Route path="/job-applied" element={<JobApplied />}></Route>
         <Route path="/jobs/:jobId" element={<JobDetail />}></Route>
-
+        <Route path="/favorite-jobs" element={<FavoriteJobs />} />
         <Route path="/recruiter/login" element={<LoginRecruiter />} />
         <Route path="/recruiter/signup" element={<SignupRecruiter />} />
         <Route path="/recruiter" element={<RecruiterLayout />}>

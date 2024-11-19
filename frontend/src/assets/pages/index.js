@@ -31,7 +31,7 @@ export default function Index() {
   let [isOpen, setOpen] = useState(false);
   return (
     <>
-      <Navbar navClass="defaultscroll sticky" />
+      <Navbar navClass="defaultscroll sticky" navLight={true} />
       <section
         className="bg-half-170 d-table w-100 bg-primary"
         style={{ backgroundImage: `url(${bg1})`, backgroundPosition: "center" }}

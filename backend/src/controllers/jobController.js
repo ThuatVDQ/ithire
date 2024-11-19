@@ -126,7 +126,9 @@ exports.getJobDetail = async (req, res) => {
     // Tìm Company liên kết với Job
     const company = await Company.findOne({ company_id: job.company_id });
 
-    const categories = await Category.find({ category_id: { $in: job.category_ids } });
+    const categories = await Category.find({
+      category_id: { $in: job.category_ids },
+    });
 
     // Tìm các Skill liên kết với Job
     const skills = await Skill.find({ skill_id: { $in: job.skills } });
@@ -142,7 +144,7 @@ exports.getJobDetail = async (req, res) => {
       company,
       skills,
       addresses,
-      categories
+      categories,
     });
   } catch (error) {
     console.error("Error fetching job detail:", error);
@@ -177,7 +179,7 @@ exports.getJobsByCompany = async (req, res) => {
     // Bộ lọc tìm kiếm
     const query = {
       company_id: company.company_id,
-      title: { $regex: search, $options: "i" }
+      title: { $regex: search, $options: "i" },
     };
 
     // Sử dụng aggregate để kết hợp Job với JobApplication
@@ -539,56 +541,58 @@ exports.getFavoriteJobs = async (req, res) => {
   try {
     const userEmail = req.user.email;
 
-    // Tìm user dựa trên email
+    // Find user based on email
     const user = await User.findOne({ email: userEmail });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Lấy danh sách công việc yêu thích từ `favorite_jobs`
+    // Get the list of favorite job IDs from `favorite_jobs`
     const favoriteJobIds = user.favorite_jobs;
 
-    // Thêm phân trang
+    // Pagination
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Tìm các công việc yêu thích có phân trang
+    // Find favorite jobs with pagination
     const favoriteJobs = await Job.find({ job_id: { $in: favoriteJobIds } })
-      .skip(skip)
-      .limit(limit);
+        .skip(skip)
+        .limit(limit);
 
-    // Tính tổng số công việc yêu thích để xác định tổng số trang
+    // Count total favorite jobs for pagination
     const totalFavoriteJobs = await Job.countDocuments({
       job_id: { $in: favoriteJobIds },
     });
     const totalPages = Math.ceil(totalFavoriteJobs / limit);
 
-    // Truy vấn để lấy tên các kỹ năng, thành phố, và logo của công ty cho từng công việc yêu thích
+    // Add details for skills, addresses, company name, and logo
     const jobsWithDetails = await Promise.all(
-      favoriteJobs.map(async (job) => {
-        const skills = await Skill.find(
-          { skill_id: { $in: job.skills } },
-          "name"
-        );
-        const addresses = await Address.find(
-          { address_id: { $in: job.addresses } },
-          "city"
-        );
-        const company = await Company.findOne(
-          { company_id: job.company_id },
-          "logo"
-        );
+        favoriteJobs.map(async (job) => {
+          const skills = await Skill.find(
+              { skill_id: { $in: job.skills } },
+              "name"
+          );
+          const addresses = await Address.find(
+              { address_id: { $in: job.addresses } },
+              "city"
+          );
+          const company = await Company.findOne(
+              { company_id: job.company_id },
+              "name logo"
+          );
 
-        return {
-          ...job.toObject(),
-          skills: skills.map((skill) => skill.name),
-          addresses: addresses.map((address) => address.city),
-          companyLogo: company ? company.logo : null, // Logo của công ty (nếu có)
-        };
-      })
+          return {
+            ...job.toObject(),
+            skills: skills.map((skill) => skill.name), // List of skill names
+            addresses: addresses.map((address) => address.city), // List of cities
+            companyName: company ? company.name : null, // Company name
+            companyLogo: company ? company.logo : null, // Company logo
+          };
+        })
     );
 
+    // Send response with job details and pagination
     res.status(200).json({
       favoriteJobs: jobsWithDetails,
       pagination: {
@@ -603,6 +607,7 @@ exports.getFavoriteJobs = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.searchJobs = async (req, res) => {
   try {
@@ -718,11 +723,9 @@ exports.searchJobsForRecruiter = async (req, res) => {
     // Tìm người dùng dựa trên email để xác thực vai trò recruiter
     const user = await User.findOne({ email: userEmail });
     if (!user || user.role_id !== 2) {
-      return res
-        .status(403)
-        .json({
-          message: "Access denied. Only recruiters can access this search.",
-        });
+      return res.status(403).json({
+        message: "Access denied. Only recruiters can access this search.",
+      });
     }
 
     // Lấy công ty mà recruiter này tạo ra
@@ -906,9 +909,11 @@ exports.updateJob = async (req, res) => {
       addresses,
     } = req.body;
 
-    const role_id = req.user.role_id; 
+    const role_id = req.user.role_id;
     if (role_id !== 2) {
-      return res.status(403).json({ message: "Access denied. Only recruiters can update jobs" });
+      return res
+        .status(403)
+        .json({ message: "Access denied. Only recruiters can update jobs" });
     }
 
     const job = await Job.findOne({ job_id });
@@ -921,9 +926,9 @@ exports.updateJob = async (req, res) => {
     for (const cat of categories) {
       let name;
       if (cat.name) {
-         name = cat.name;
+        name = cat.name;
       } else {
-         name = cat;
+        name = cat;
       }
       let category = await Category.findOne({ name });
       if (!category) {
@@ -937,11 +942,10 @@ exports.updateJob = async (req, res) => {
     for (const skillName of skills) {
       let name;
       if (skillName.name) {
-          name = skillName.name;
-        }
-        else {
-          name = skillName;
-        }
+        name = skillName.name;
+      } else {
+        name = skillName;
+      }
       let skill = await Skill.findOne({ name: name });
       if (!skill) {
         skill = new Skill({ name: skillName });
@@ -984,7 +988,7 @@ exports.updateJob = async (req, res) => {
     console.error("Error updating job:", error);
     res.status(500).json({ message: "Server error" });
   }
-}
+};
 
 exports.closeJob = async (req, res) => {
   try {
@@ -992,7 +996,9 @@ exports.closeJob = async (req, res) => {
 
     const role_id = req.user.role_id;
     if (role_id !== 2 && role_id !== 1) {
-      return res.status(403).json({ message: "Access denied. Only recruiters or admins can close jobs" });
+      return res.status(403).json({
+        message: "Access denied. Only recruiters or admins can close jobs",
+      });
     }
 
     const job = await Job.findOne({ job_id });
@@ -1003,9 +1009,8 @@ exports.closeJob = async (req, res) => {
     job.status = "CLOSED";
     await job.save();
     res.status(200).json({ message: "Job closed successfully", job });
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Error closing job:", error);
     res.status(500).json({ message: "Server error" });
   }
-}
+};

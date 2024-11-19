@@ -38,7 +38,7 @@ export default function Footer({ top }) {
 
               <div className="col-md-5 mt-4 mt-sm-0">
                 <div className="text-md-end ms-5 ms-sm-0">
-                  <Link to="/job-apply" className="btn btn-primary me-1 my-1">
+                  <Link to="/jobs" className="btn btn-primary me-1 my-1">
                     Apply Now
                   </Link>
                   <Link to="/contactus" className="btn btn-soft-primary my-1">
