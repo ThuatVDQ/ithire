@@ -142,9 +142,7 @@ export default function Navbar({ navClass, navLight }) {
     <header id="topnav" className={`${scroll ? "nav-sticky" : ""} ${navClass}`}>
       <div className="container">
         <Link className="logo" to="/">
-          <span className={`${navLight ? "text-white" : "text-black"}`}>
-            ITHIRE
-          </span>
+          <span className="text-primary">ITHIRE</span>
         </Link>
         <div className="menu-extras">
           <div className="menu-item">
