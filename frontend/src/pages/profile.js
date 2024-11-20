@@ -155,24 +155,28 @@ export default function Profile() {
             {/* Left Section */}
             <div className="col-md-4">
               <div className="card shadow-sm p-4 text-center">
-              <div
-    className="d-flex justify-content-center align-items-center"
-    style={{
-      width: "100%",
-      height: "120px",
-    }}
-  >
-    <img
-      src={avatarPreview || `http://localhost:8090${userInfo.avatar_url}` || "/default-avatar.png"}
-      alt="Profile Avatar"
-      className="rounded-circle mb-3"
-      style={{
-        width: "120px",
-        height: "120px",
-        objectFit: "cover",
-      }}
-    />
-  </div>
+                <div
+                  className="d-flex justify-content-center align-items-center"
+                  style={{
+                    width: "100%",
+                    height: "120px",
+                  }}
+                >
+                  <img
+                    src={
+                      avatarPreview ||
+                      `http://localhost:8090${userInfo.avatar_url}` ||
+                      "/default-avatar.png"
+                    }
+                    alt="Profile Avatar"
+                    className="rounded-circle mb-3"
+                    style={{
+                      width: "120px",
+                      height: "120px",
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
                 <h5 className="mb-1">
                   Welcome, {userInfo.full_name || "User"}
                 </h5>

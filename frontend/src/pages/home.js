@@ -73,7 +73,7 @@ export default function Home() {
                 </p>
 
                 <div className="d-md-flex justify-content-between align-items-center bg-white shadow rounded p-2 mt-4">
-                  <FormSelect onSearch={handleSearch}/>
+                  <FormSelect onSearch={handleSearch} />
                 </div>
 
                 <div className="mt-2">
@@ -149,7 +149,7 @@ export default function Home() {
 
                       <div className="ms-3">
                         <Link
-                          to={`/job-detail/${item.job_id}`}
+                          to={`/jobs/${item.job_id}`}
                           className="h5 title text-dark"
                         >
                           {item.title}
