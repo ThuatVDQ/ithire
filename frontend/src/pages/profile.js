@@ -144,7 +144,7 @@ export default function Profile() {
             <div className="col-md-4">
               <div className="card shadow-sm p-4 text-center">
                 <img
-                  src={userInfo.avatar_url || "/default-avatar.png"}
+                  src={`http://localhost:8090${userInfo.avatar_url}`}
                   alt="Profile Avatar"
                   className="rounded-circle mb-3"
                   style={{
