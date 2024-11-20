@@ -7,6 +7,7 @@ const Category = require("../models/Category");
 const JobApplication = require("../models/JobApplication");
 const CV = require("../models/CV");
 const { createNotification } = require("./notificationController");
+const { sendJobRejectionEmail } = require("../configs/emailService");  
 
 //Dành cho recruiter
 exports.createJob = async (req, res) => {
@@ -103,7 +104,7 @@ exports.createJob = async (req, res) => {
 
     await newJob.save();
     message = `Job "${title}" has been created and is pending approval`;
-    await createNotification(5, message);
+    await createNotification(1, message);
     res.status(201).json({ message: "Job created successfully", job: newJob });
   } catch (error) {
     console.error("Error creating job:", error);
@@ -522,6 +523,12 @@ exports.rejectJob = async (req, res) => {
     // Create a notification for the recruiter
     const message = `"${job.title}" has been rejected.`;
     await createNotification(recruiter_id, message);
+
+    const recruiter = await User.findOne({ user_id: recruiter_id });
+    if (recruiter) {
+      const emailMessage = `The job "${job.title}" posted by your company has been rejected.`;
+      await sendJobRejectionEmail(recruiter.email, job.title, emailMessage); 
+    }
 
     res.status(200).json({ message: "Job rejected successfully", job });
   } catch (error) {

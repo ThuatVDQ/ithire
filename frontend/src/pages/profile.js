@@ -15,6 +15,7 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -36,7 +37,16 @@ export default function Profile() {
   }, []);
 
   const handleAvatarChange = (event) => {
-    setAvatarFile(event.target.files[0]);
+    const file = event.target.files[0];
+
+    if (file) {
+      // Nếu có tệp, tạo URL tạm thời cho việc xem trước
+      const fileUrl = URL.createObjectURL(file);
+      setAvatarPreview(fileUrl); // Lưu URL vào state
+      setAvatarFile(file); // Lưu tệp vào state
+    } else if (avatarFile) {
+      setAvatarPreview(URL.createObjectURL(avatarFile)); // Nếu không có tệp, reset preview
+    }
   };
 
   const handleAvatarUpload = async () => {
@@ -52,6 +62,8 @@ export default function Profile() {
       const token = localStorage.getItem("token");
       const response = await authApi.uploadAvatar(formData, token);
       setUserInfo((prev) => ({ ...prev, avatar_url: response.avatar_url }));
+      setAvatarPreview(null);
+      setAvatarFile(null);
       toast.success("Avatar uploaded successfully!");
     } catch (error) {
       console.error("Error uploading avatar:", error.message);
@@ -137,22 +149,30 @@ export default function Profile() {
   return (
     <>
       <Navbar navClass="defaultscroll sticky" navLight={false} />
-      <section className="profile-page py-5">
+      <section className="profile-page py-5 bg-light">
         <div className="container pt-4">
           <div className="row g-4">
             {/* Left Section */}
             <div className="col-md-4">
               <div className="card shadow-sm p-4 text-center">
-                <img
-                  src={`http://localhost:8090${userInfo.avatar_url}`}
-                  alt="Profile Avatar"
-                  className="rounded-circle mb-3"
-                  style={{
-                    width: "120px",
-                    height: "120px",
-                    objectFit: "cover",
-                  }}
-                />
+              <div
+    className="d-flex justify-content-center align-items-center"
+    style={{
+      width: "100%",
+      height: "120px",
+    }}
+  >
+    <img
+      src={avatarPreview || `http://localhost:8090${userInfo.avatar_url}` || "/default-avatar.png"}
+      alt="Profile Avatar"
+      className="rounded-circle mb-3"
+      style={{
+        width: "120px",
+        height: "120px",
+        objectFit: "cover",
+      }}
+    />
+  </div>
                 <h5 className="mb-1">
                   Welcome, {userInfo.full_name || "User"}
                 </h5>

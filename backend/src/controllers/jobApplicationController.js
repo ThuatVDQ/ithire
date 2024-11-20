@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Job = require("../models/Job");
 const Company = require("../models/Company");
 const Notification = require("../controllers/notificationController");
+const { sendApplicationAcceptedEmail } = require("../configs/emailService");  
 const path = require("path");
 const fs = require("fs");
 exports.downloadCV = async (req, res) => {
@@ -150,13 +151,22 @@ exports.changeApplicationStatus = async (req, res) => {
 
     await application.save();
 
-    // Create a notification if the new status is "ACCEPTED"
     if (newStatus === "ACCEPTED") {
       const user = await User.findOne({ user_id: application.user_id });
       if (user) {
         const job = await Job.findOne({ job_id: application.job_id });
-        const message = `Your application for the job ${job.title} has been accepted.`;
-        await Notification.createNotification(application.user_id, message);
+        if (job) {
+          const company = await Company.findOne({ company_id: job.company_id }); // Truy vấn công ty từ company_id
+          if (company) {
+            const message = `Your application for the job ${job.title} at ${company.name} has been accepted.`;
+            
+            // Create notification for internal system
+            await Notification.createNotification(application.user_id, message);
+
+            // Gửi email thông báo cho ứng viên
+            await sendApplicationAcceptedEmail(user.email, job.title, company.name);
+          }
+        }
       }
     }
 
