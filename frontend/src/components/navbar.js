@@ -107,7 +107,11 @@ export default function Navbar({ navClass, navLight }) {
         onClick={() => setCartitem(!cartitem)}
         className="dropdown-toggle btn btn-sm btn-icon btn-pills btn-primary"
       >
-        <img src={user?.avatar_url} className="img-fluid rounded-pill" alt="" />
+        <img
+          src={`http://localhost:8090${user?.avatar_url}`}
+          className="img-fluid rounded-pill"
+          alt=""
+        />
       </button>
       <div style={{ display: cartitem === true ? "block" : "none" }}>
         <div
