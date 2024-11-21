@@ -47,27 +47,36 @@ export default function JobApplications() {
 
   const handleDownloadCV = async (cvid, user, id) => {
     try {
+      // Gửi request để tải CV
       const response = await axios.get(
         `http://localhost:8090/api/cvs/downloadCV/${cvid}`,
         {
-          responseType: "blob",
+          responseType: "blob",  // Quan trọng, đảm bảo rằng file trả về dưới dạng blob
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,  // Gửi token nếu cần
           },
         }
       );
+      // Tạo URL từ dữ liệu blob
       const url = window.URL.createObjectURL(new Blob([response.data]));
+      
+      // Tạo một liên kết tạm thời và kích hoạt tải xuống
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `cv_${user}.pdf`);
+      link.setAttribute("download", `cv_${user}.pdf`);  // Đặt tên file tải về
       document.body.appendChild(link);
-      link.click();
+      link.click();  // Bắt đầu quá trình tải xuống
+
+      // Sau khi tải xong, loại bỏ liên kết tạm thời
       link.remove();
+      
+      // Cập nhật trạng thái của ứng viên
       changeApplicationStatus(id, "SEEN");
     } catch (error) {
       console.error("Error downloading CV:", error);
     }
-  };
+};
+
 
   const handleViewCV = (cv_url, id) => {
     // Logic xem CV (ví dụ mở CV trong tab mới)
@@ -91,9 +100,6 @@ export default function JobApplications() {
       fetchJobApplications(); 
     } catch (error) {
       console.error("Error changing application status:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to update application status. Please try again later."
-      );
     }
   };
 

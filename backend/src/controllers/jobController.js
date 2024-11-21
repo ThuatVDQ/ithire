@@ -48,7 +48,13 @@ exports.createJob = async (req, res) => {
     }
 
     const category_ids = [];
-    for (const name of categories) {
+    for (const cat of categories) {
+      let name;
+      if (cat.name) {
+        name = cat.name;
+      } else {
+        name = cat;
+      }
       let category = await Category.findOne({ name });
       if (!category) {
         category = new Category({ name });
@@ -59,6 +65,7 @@ exports.createJob = async (req, res) => {
 
     const skill_ids = [];
     for (const skillName of skills) {
+      console.log(skillName)
       let skill = await Skill.findOne({ name: skillName });
       if (!skill) {
         skill = new Skill({ name: skillName });

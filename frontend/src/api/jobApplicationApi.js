@@ -71,6 +71,9 @@ const jobApplicationApi = {
   // API to check if a user has already applied for a specific job
   checkJobApplication: async (jobId) => {
     try {
+      if (!localStorage.getItem("token")) {
+        return { applied: false };
+      }
       const response = await axios.get(
         `${BASE_URL}/${jobId}/check-application`,
         {
@@ -91,6 +94,9 @@ const jobApplicationApi = {
 
   getUserApplications: async () => {
     try {
+      if (!localStorage.getItem("token")) {
+        return { applications: [] };
+      }
       const response = await axios.get(`${BASE_URL}/job-applied`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
