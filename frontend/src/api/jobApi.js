@@ -96,6 +96,11 @@ const jobApi = {
       );
       return response.data;
     } catch (error) {
+      if (error.response?.data?.message === "Invalid token.") {
+        toast.error("Please login to apply for jobs.");
+      }
+      else 
+        toast.error("Failed to apply for the job.");
       console.log(error);
       throw error;
     }
@@ -132,6 +137,9 @@ const jobApi = {
   // Lấy công việc yêu thích
   getFavoriteJobs: async (params = {}) => {
     try {
+      if (!localStorage.getItem("token")) {
+        return { favoriteJobs: [] };
+      }
       // Lấy token từ localStorage
       const token = localStorage.getItem("token");
 
