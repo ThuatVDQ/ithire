@@ -54,32 +54,26 @@ export default function JobManagement() {
   };
   
 
-  const handleDownloadCVs = async (job_id) => {
+  const handleDownloadCVs = async (jobId) => {
     try {
-      const response = await axios.get(`http://localhost:8090/api/job-applications/downloadCV/${job_id}`, {
+      const response = await axios.get(`http://localhost:8090/api/job-applications/downloadCV/${jobId}`, {
+        responseType: "blob",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-  
-      // Tạo URL từ dữ liệu blob để tải xuống
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `cvs_${job_id}.zip`);
+      link.setAttribute("download", `cvs_${jobId}.zip`); // Set file name
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-  
-      console.log(`CVs for Job ID ${job_id} downloaded successfully!`);
+      toast.success("CVs downloaded successfully!");
     } catch (error) {
-      // Kiểm tra lỗi từ backend
-      const errorMessage = error.response?.data?.message || "Unable to download CVs. Please try again later.";
-  
-      // Hiển thị thông báo lỗi từ backend
+      const errorMessage =
+        error.response?.data?.message || "Failed to download CVs.";
       toast.error(errorMessage);
-  
-      console.error("Error downloading CVs:", error);
+      throw error;
     }
   };
   
