@@ -142,7 +142,7 @@ export default function Home() {
                   <div className="job-post job-post-list rounded shadow p-4 d-md-flex align-items-center justify-content-between position-relative">
                     <div className="d-flex align-items-center w-310px">
                       <img
-                        src={item.companyLogo}
+                        src={`http://localhost:8090${item.companyLogo}`}
                         className="avatar avatar-small rounded shadow p-3 bg-white"
                         alt=""
                       />
@@ -187,7 +187,7 @@ export default function Home() {
                         <FiBookmark className="icons" />
                       </Link>
                       <Link
-                        to={`/job-detail-one/${item.id}`}
+                        to={`/jobs/${item.job_id}`}
                         className="btn btn-sm btn-primary w-full ms-md-1"
                       >
                         Apply Now
@@ -200,10 +200,7 @@ export default function Home() {
 
             <div className="col-12">
               <div className="text-center">
-                <Link
-                  to="/job-list-one"
-                  className="btn btn-link primary text-muted"
-                >
+                <Link to="/jobs" className="btn btn-link primary text-muted">
                   See More Jobs <i className="mdi mdi-arrow-right"></i>
                 </Link>
               </div>

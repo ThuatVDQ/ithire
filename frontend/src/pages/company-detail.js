@@ -78,7 +78,7 @@ export default function CompanyDetail() {
               <div className="d-md-flex justify-content-between align-items-center bg-white shadow rounded p-4">
                 <div className="d-flex align-items-center">
                   <img
-                    src={company?.logo || logo1}
+                    src={`http://localhost:8090${company.logo}`}
                     className="avatar avatar-md-md rounded shadow p-3 bg-white"
                     alt={company?.name || "Company Logo"}
                   />

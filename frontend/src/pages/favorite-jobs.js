@@ -112,7 +112,7 @@ export default function FavoriteJobs() {
                 <div className="card shadow-sm border-0 p-3">
                   <div className="d-flex align-items-start">
                     <img
-                      src={job?.companyLogo || "/default-logo.png"}
+                      src={`http://localhost:8090${job.companyLogo}`}
                       alt={job?.companyName || "Company Logo"}
                       className="rounded me-3"
                       style={{

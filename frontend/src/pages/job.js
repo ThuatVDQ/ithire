@@ -151,7 +151,7 @@ export default function Job() {
                   <div className="d-flex justify-content-between">
                     <div>
                       <img
-                        src={item.companyLogo}
+                        src={`http://localhost:8090${item.companyLogo}`}
                         className="avatar avatar-small rounded shadow p-3 bg-white"
                         alt=""
                       />
@@ -191,7 +191,7 @@ export default function Job() {
                       {item.title} - Up to {item.salary_end} {item.currency}
                     </Link>
                     <Link
-                      to={`/companies/${item.company_id}`}
+                      to={`/company-detail/${item.company_id}`}
                       className="text-muted small d-block mt-1"
                     >
                       {item.companyName}

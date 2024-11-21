@@ -76,7 +76,7 @@ export default function Companies() {
               <div className="employer-card rounded shadow p-2 bg-light">
                 <div className="d-flex align-items-center">
                   <img
-                    src={company.logo || "default-company-logo.png"}
+                    src={`http://localhost:8090${company.logo}`}
                     className="avatar avatar-md-sm rounded shadow p-2 bg-white"
                     alt=""
                   />

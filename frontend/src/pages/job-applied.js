@@ -114,7 +114,7 @@ export default function JobApplied() {
                 <div className="card shadow-sm border-0 p-3">
                   <div className="d-flex align-items-start">
                     <img
-                      src={app.job?.company?.logo || "/default-logo.png"}
+                      src={`http://localhost:8090${app.job.company.logo}`}
                       alt={app.job?.company?.name || "Company Logo"}
                       className="rounded me-3"
                       style={{

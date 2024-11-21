@@ -104,7 +104,7 @@ export default function JobDetail() {
             <div className="col-lg-8 col-md-6 col-12">
               <div className="d-lg-flex align-items-center p-4 rounded shadow bg-white mb-4">
                 <img
-                  src={company?.logo || logo1}
+                  src={`http://localhost:8090${company.logo}`}
                   className="avatar avatar-medium p-4 rounded-pill shadow bg-white"
                   alt=""
                 />
